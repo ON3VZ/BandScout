@@ -38,7 +38,8 @@ const SCREEN_ORDER = ['map', 'by-band', 'by-region', 'opening', 'setup'];
 
   // 1. Thema & kleurenblind meteen toepassen vóór render
   const settings = loadSettings();
-  applyTheme(settings.theme ?? 'dark');
+  // Default altijd dark tenzij gebruiker expliciet iets anders koos
+  applyTheme(settings.theme || 'dark');
   applyColorblind(settings.colorblind ?? false);
 
   // 2. Taal laden

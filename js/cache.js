@@ -73,15 +73,15 @@ export async function buildCache(features, onProgress) {
         for (const band of getActiveBands()) {
           try {
             const result = calcReliability({
-              fromLat: userLat ?? 52,
-              fromLon: userLon ?? 5,
-              toLat:   dxccLat,
-              toLon:   dxccLon,
+              txLat: userLat ?? 52,
+              txLon: userLon ?? 5,
+              rxLat: dxccLat,
+              rxLon: dxccLon,
               band,
-              utcDate: date,
+              time:    date,
               sfi,
               kp,
-              powerW:  state.user.powerW ?? 100,
+              txPowerW: state.user.powerW ?? 100,
               mode:    state.user.mode   ?? 'ssb',
             });
             stepScores[band] = result.score ?? 0;
@@ -139,15 +139,15 @@ export async function rebuildEntry(dxccId) {
     for (const band of getActiveBands()) {
       try {
         const result = calcReliability({
-          fromLat: state.user.lat ?? 52,
-          fromLon: state.user.lon ?? 5,
-          toLat:   entry.lat,
-          toLon:   entry.lon,
+          txLat: state.user.lat ?? 52,
+          txLon: state.user.lon ?? 5,
+          rxLat: entry.lat,
+          rxLon: entry.lon,
           band,
-          utcDate: date,
+          time:    date,
           sfi,
           kp,
-          powerW:  state.user.powerW ?? 100,
+          txPowerW: state.user.powerW ?? 100,
           mode:    state.user.mode   ?? 'ssb',
         });
         stepScores[band] = result.score ?? 0;
