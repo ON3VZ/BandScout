@@ -259,7 +259,13 @@ export function switchScreen(name) {
   if (name === 'by-band')   updateByBand();
   if (name === 'by-region') updateByRegion();
   if (name === 'opening')   updateOpening();
-  if (name === 'map')       setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+  if (name === 'map') {
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    // Re-render kaartscores na terugkeer naar Map-scherm
+    if (state.scoreCacheBuilt) {
+      try { window.__hfbs?.renderScores?.(); } catch {}
+    }
+  }
 
   document.title = name === 'map' ? 'HF Band Scout' : 'HF Band Scout – ' + name;
 }
