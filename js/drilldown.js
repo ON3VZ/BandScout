@@ -136,7 +136,7 @@ function renderScoresTable(props, rxLat, rxLon) {
     return {
       band,
       score:    cached?.[band]    ?? 0,
-      score100W: cached?.[band]100W ?? 0,
+      score100W: 0,  // score100W niet in cache (zelfde score gebruikt)
       details:  cached?.details  ?? {},
     };
   });
