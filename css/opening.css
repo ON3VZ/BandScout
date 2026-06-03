@@ -119,3 +119,57 @@
   color: var(--text-muted);
   font-size: var(--font-size-sm);
 }
+
+/* ── Opening header ──────────────────────────────── */
+.opening-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+.opening-horizon-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.opening-count { font-size: 11px; color: var(--text-muted); }
+
+/* ── Opening rows ────────────────────────────────── */
+.opening-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  min-height: 48px;
+  transition: background var(--transition-fast);
+}
+.opening-row:hover { background: var(--bg-elevated); }
+.opening-row-left  { display: flex; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; }
+.opening-row-right { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+.opening-band-tag {
+  background: var(--accent-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  min-width: 30px;
+  text-align: center;
+}
+.opening-entity { min-width: 0; }
+.opening-prefix { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-right: 4px; }
+.opening-name   { font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.opening-time   { font-size: 12px; color: var(--accent-primary); font-weight: 600; min-width: 60px; text-align: right; }
+.opening-arrow  { font-size: 14px; }
+.opening-score  { font-size: 12px; font-weight: 700; min-width: 32px; text-align: right; font-family: var(--font-mono); }
+
+/* ── Bandplan note ────────────────────────────────── */
+.bandplan-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--space-1);
+}
