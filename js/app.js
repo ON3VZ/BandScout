@@ -97,16 +97,12 @@ const SCREEN_ORDER = ['map', 'by-band', 'by-region', 'opening', 'setup'];
     updateLoadingProgress(pct, label);
   });
 
-  // 10. Toon "kaart wordt opgebouwd" terwijl we renderen
-  showGlobalLoading(true, t('ui.rendering_map') !== 'ui.rendering_map'
-    ? t('ui.rendering_map')
-    : 'Propagation map ready — please wait…');
+  // 10. Korte yield zodat de voortgangsbalk 100% kan tonen
+  await new Promise(r => setTimeout(r, 80));
 
-  // Yield even zodat de browser het label kan tonen
-  await new Promise(r => setTimeout(r, 50));
-
-  // 11. Eerste render
+  // 11. Eerste render — scoreCacheBuilt is nu true, rebuild kleurt de kaart
   rebuild();            // kaartkleur
+  showLoading(false);   // verberg map-loading spinner
   updateListview();     // By-Band / By-Region
   updateOpening();      // Opening Soon
   renderBandSelector();

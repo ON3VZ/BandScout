@@ -117,7 +117,8 @@ export async function buildCache(features, onProgress) {
   }
 
   // Atomic swap
-  state.scoreCache = newCache;
+  state.scoreCache    = newCache;
+  state.scoreCacheBuilt = true;
 }
 
 /**
