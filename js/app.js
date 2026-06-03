@@ -228,11 +228,15 @@ function initNav() {
 export function switchScreen(name) {
   window.hfbsSwitchScreen = switchScreen;
 
+  // Hide ALL screens: remove is-active + reset any inline display
   document.querySelectorAll('[id^="' + SCREEN_PREFIX + '"]').forEach(el => {
     el.classList.remove('is-active');
     el.removeAttribute('aria-current');
+    el.style.display = ''; // reset inline style — let CSS take over
+    el.setAttribute('hidden', '');
   });
 
+  // Update nav tabs
   document.querySelectorAll(NAV_SELECTOR).forEach(tab => {
     const active = tab.dataset.screen === name;
     tab.classList.toggle('is-active', active);
@@ -240,10 +244,12 @@ export function switchScreen(name) {
     if (active) tab.setAttribute('aria-current', 'page');
   });
 
+  // Show target screen
   const target = document.getElementById(SCREEN_PREFIX + name);
   if (target) {
-    target.classList.add('is-active');
     target.removeAttribute('hidden');
+    target.classList.add('is-active');
+    target.style.display = ''; // ensure CSS controls it
   }
 
   currentScreen = name;
