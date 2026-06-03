@@ -229,9 +229,10 @@ async function fetchKp() {
   const data = await res.json();
   if (!Array.isArray(data) || data.length === 0) throw new Error('Kp empty response');
   const latest = data[data.length - 1];
-  const kp = parseFloat(latest.kp_index);
+  // Gebruik estimated_kp (real-time) indien beschikbaar, anders kp_index (afgerond)
+  const kp = parseFloat(latest.estimated_kp ?? latest.kp_index);
   if (isNaN(kp)) throw new Error('Kp parse failed');
-  return kp;
+  return Math.round(kp * 10) / 10;  // 1 decimaal
 }
 
 async function fetchForecast() {
