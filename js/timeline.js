@@ -10,7 +10,7 @@
 import { state } from './state.js';
 import { formatUTC } from './utils.js';
 
-import { update as updateListview } from './listview.js';
+// listview via window.__hfbs callback (geen directe import)
 
 const PLAY_INTERVAL_MS = 300;
 const TOTAL_STEPS = 48; // 0..47
