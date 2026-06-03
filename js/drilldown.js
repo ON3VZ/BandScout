@@ -274,32 +274,33 @@ function renderBandPlan(props) {
   const container = document.getElementById('drilldown-bandplan');
   if (!container) return;
 
-  const region  = props.itu_zone ? iauRegionFromITUZone(props.itu_zone) : state.user.iauRegion;
+  const region  = props.itu_zone ? iauRegionFromITUZone(props.itu_zone) : (state.user.iauRegion ?? 1);
   const band    = state.activeBand;
-  const snippet = getBandPlanSnippet(region, band);
+  const rows    = getBandPlanSnippet(region, band); // returns array of {mode, freqStr, note?, highlighted?}
 
-  if (!snippet) {
+  if (!rows || rows.length === 0) {
     container.innerHTML = `
       <div class="bandplan-header">${t('drilldown.bandplan.title')} — ${band}</div>
-      <p class="bandplan-row" style="color:var(--text-muted)">${t('drilldown.bandplan.none')}</p>
-    `;
+      <p class="bandplan-row" style="color:var(--text-muted)">${t('drilldown.bandplan.none')}</p>`;
     return;
   }
 
-  const rows = Object.entries(snippet)
-    .filter(([mode]) => mode !== 'note')
-    .map(([mode, freq]) => `
-    <div class="bandplan-row">
-      <span class="bandplan-mode">${mode.replace(/_/g, ' ').toUpperCase()}</span>
-      <span class="bandplan-freq">${formatFreq(freq)}</span>
-    </div>
-  `).join('');
+  // Check for note
+  const noteRow  = rows.find(r => r.note);
+  const dataRows = rows.filter(r => !r.note);
 
-  const noteStr = snippet.note ? `<div class="bandplan-note">ℹ ${snippet.note}</div>` : '';
-  container.innerHTML = `
+  const html = `
     <div class="bandplan-header">${t('drilldown.bandplan.title')} — ${band} (Region ${region})</div>
-    ${rows}
+    <table class="bandplan-table">
+      ${dataRows.map(r => `
+        <tr class="bandplan-row${r.highlighted ? ' highlighted' : ''}">
+          <td class="bandplan-mode">${r.mode.toUpperCase()}</td>
+          <td class="bandplan-freq">${r.freqStr}</td>
+        </tr>`).join('')}
+    </table>
+    ${noteRow ? `<div class="bandplan-note">ℹ ${noteRow.freqStr || noteRow.note}</div>` : ''}
   `;
+  container.innerHTML = html;
 }
 
 function renderActions(props, azDeg) {
