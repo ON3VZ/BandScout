@@ -286,13 +286,16 @@ function renderBandPlan(props) {
     return;
   }
 
-  const rows = Object.entries(snippet).map(([mode, freq]) => `
+  const rows = Object.entries(snippet)
+    .filter(([mode]) => mode !== 'note')
+    .map(([mode, freq]) => `
     <div class="bandplan-row">
       <span class="bandplan-mode">${mode.replace(/_/g, ' ').toUpperCase()}</span>
       <span class="bandplan-freq">${formatFreq(freq)}</span>
     </div>
   `).join('');
 
+  const noteStr = snippet.note ? `<div class="bandplan-note">ℹ ${snippet.note}</div>` : '';
   container.innerHTML = `
     <div class="bandplan-header">${t('drilldown.bandplan.title')} — ${band} (Region ${region})</div>
     ${rows}
@@ -345,10 +348,10 @@ function iauRegionFromITUZone(ituZone) {
 }
 
 function formatFreq(freq) {
-  if (Array.isArray(freq)) {
-    return `${freq[0]}–${freq[1]} kHz`;
-  }
-  return `${freq} kHz`;
+  if (!freq) return '';
+  if (typeof freq === 'number') return freq + ' kHz';
+  // String: kan "7074" of "7060–7200" zijn
+  return String(freq);
 }
 
 // ─────────────────────────────────────────────

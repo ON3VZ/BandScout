@@ -30,117 +30,133 @@ export function updateByBand() {
   const container = document.getElementById('screen-by-band');
   if (!container) return;
 
-  const step      = state.activeTimeOffset;
-  const cache     = state.scoreCache;
-  const activeBand= state.activeBand;
+  const cache      = state.scoreCache;
+  const step       = state.activeTimeOffset;
+  const activeBand = state.activeBand;
+  const threshold  = state.user.thresholdPct ?? 40;
 
-  if (!cache || Object.keys(cache).length === 0) {
+  if (!state.scoreCacheBuilt || !cache || Object.keys(cache).length === 0) {
     container.innerHTML = `<div class="list-empty">${t('ui.loading')}</div>`;
     return;
   }
 
-  // Collect all DXCC entries visible in cache
-  const dxccIds = Object.keys(cache);
-  if (dxccIds.length === 0) {
-    container.innerHTML = `<div class="list-empty">${t('listview.no_data')}</div>`;
-    return;
-  }
-
-  // Group by continent
+  // Build sorted entries per continent
   const grouped = {};
-  for (const id of dxccIds) {
-    const entry = cache[id];
-    const cont = entry.continent ?? 'EU';
+  for (const [id, entry] of Object.entries(cache)) {
+    const cont   = entry.continent ?? 'EU';
+    const score  = entry.steps?.[step]?.[activeBand] ?? 0;
     if (!grouped[cont]) grouped[cont] = [];
-
-    // Score for active band at this step
-    const bandScores = entry.steps?.[step] ?? {};
-    const score = bandScores[activeBand] ?? 0;  // correct
-    const mini24h = buildMini24h(entry, activeBand);
-
-    grouped[cont].push({
-      id,
-      name:     entry.name,
-      prefix:   entry.prefix,
-      score,
-      mini24h,
-      feature:  entry.feature,
-    });
+    grouped[cont].push({ id, entry, score });
   }
 
-  // Sort each group by score descending
+  // Sort each continent: score descending
   for (const cont of Object.keys(grouped)) {
     grouped[cont].sort((a, b) => b.score - a.score);
   }
 
-  // Render
-  let html = '';
-
-  // Band selector header (rendered above list by layout, but also put best stats here)
-  const allScores = dxccIds.map(id => {
-    const bandScores = cache[id]?.steps?.[step] ?? {};
-    return bandScores[activeBand] ?? 0;
+  // Sort continents by best score descending
+  const sortedConts = Object.keys(grouped).sort((a, b) => {
+    const bestA = grouped[a][0]?.score ?? 0;
+    const bestB = grouped[b][0]?.score ?? 0;
+    return bestB - bestA;
   });
-  const reachable  = allScores.filter(s => s >= 20).length;
-  const excellent  = allScores.filter(s => s >= 80).length;
 
-  html += `<div class="listview-summary">
-    <span>${t('listview.reachable', { n: reachable })}</span>
-    <span>${t('listview.excellent', { n: excellent })}</span>
-  </div>`;
+  // Count totals for header
+  const totalReachable = Object.values(grouped).flat().filter(e => e.score >= threshold).length;
+  const totalEntities  = Object.values(grouped).flat().length;
 
-  for (const cont of CONTINENT_ORDER) {
-    const rows = grouped[cont];
-    if (!rows || rows.length === 0) continue;
+  let html = `
+    <div class="listview-toolbar">
+      <div class="listview-band-info">
+        <span class="lv-band-badge">${activeBand}</span>
+        <span class="lv-reach-count">${totalReachable} / ${totalEntities} reachable</span>
+      </div>
+      <label class="lv-filter-wrap">
+        <input type="checkbox" id="lv-filter-open" ${state.lvFilterOpen ? 'checked' : ''}>
+        <span>Reachable only (≥${threshold}%)</span>
+      </label>
+    </div>
+  `;
 
-    html += `<div class="listview-group">
-      <div class="listview-group-header">
-        <span class="listview-continent">${CONTINENT_NAMES[cont] ?? cont}</span>
-        <span class="listview-group-count">${rows.length}</span>
-      </div>`;
+  for (const cont of sortedConts) {
+    const rows   = grouped[cont];
+    const reachable = rows.filter(e => e.score >= threshold).length;
+    const bestScore = rows[0]?.score ?? 0;
+    const contName  = CONTINENT_NAMES[cont] ?? cont;
+    const contClass = `score-color-${getScoreTier(bestScore)}`;
 
-    for (const row of rows) {
-      const sc     = scoreClass(row.score);
-      const pct    = row.score;
+    html += `
+      <div class="listview-group" data-cont="${cont}">
+        <div class="listview-group-header" role="button" tabindex="0" aria-expanded="true">
+          <span class="cont-flag">${CONTINENT_FLAGS[cont] ?? ''}</span>
+          <span class="listview-continent">${contName}</span>
+          <span class="lv-reach-badge ${reachable > 0 ? 'has-reach' : ''}">${reachable} open</span>
+          <span class="lv-group-arrow">▾</span>
+        </div>
+        <div class="listview-group-body">
+    `;
+
+    for (const { id, entry, score } of rows) {
+      const tier  = getScoreTier(score);
+      const hops  = getHopCount(entry.distKm ?? 0);
+      const dist  = entry.distKm ? Math.round(entry.distKm) + ' km' : '—';
+      const hidden = (state.lvFilterOpen && score < threshold) ? ' lv-hidden' : '';
       html += `
-        <div class="listview-row" data-dxcc="${escHtml(row.id)}" role="button" tabindex="0"
-             aria-label="${escHtml(row.name)} – ${row.score}%">
-          <div class="listview-row-left">
-            <span class="listview-prefix">${escHtml(row.prefix)}</span>
-            <span class="listview-name">${escHtml(row.name)}</span>
+        <div class="lv-row${hidden}" data-id="${id}" role="button" tabindex="0">
+          <div class="lv-row-left">
+            <span class="lv-prefix">${entry.prefix}</span>
+            <span class="lv-name">${entry.name}</span>
           </div>
-          <div class="listview-row-right">
-            <div class="listview-mini24h" aria-hidden="true">
-              ${row.mini24h.map(v =>
-                `<span class="mini-bar ${scoreClass(v)}" style="height:${Math.max(2, v)}%"></span>`
-              ).join('')}
+          <div class="lv-row-right">
+            <div class="lv-score-bar-wrap">
+              <div class="lv-score-bar score-bg-${tier}" style="width:${score}%"></div>
             </div>
-            <div class="score-bar-wrap">
-              <div class="score-bar ${sc}" style="width:${pct}%"></div>
-            </div>
-            <span class="listview-score ${sc}">${row.score}</span>
+            <span class="lv-score-pct score-text-${tier}">${score}%</span>
+            <span class="lv-dist">${dist}</span>
           </div>
-        </div>`;
+        </div>
+      `;
     }
-    html += `</div>`;
+
+    html += `</div></div>`;
+  }
+
+  if (!html.includes('lv-row')) {
+    html += `<div class="list-empty">${t('ui.no_results')}</div>`;
   }
 
   container.innerHTML = html;
 
-  // Bind click → drilldown
-  container.querySelectorAll('.listview-row').forEach(el => {
-    el.addEventListener('click', () => {
-      const id = el.dataset.dxcc;
+  // Filter toggle
+  const filterCb = container.querySelector('#lv-filter-open');
+  filterCb?.addEventListener('change', () => {
+    state.lvFilterOpen = filterCb.checked;
+    updateByBand();
+  });
+
+  // Collapse/expand groups
+  container.querySelectorAll('.listview-group-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const body  = hdr.nextElementSibling;
+      const arrow = hdr.querySelector('.lv-group-arrow');
+      const open  = body.style.display !== 'none';
+      body.style.display  = open ? 'none' : '';
+      if (arrow) arrow.textContent = open ? '▸' : '▾';
+      hdr.setAttribute('aria-expanded', String(!open));
+    });
+  });
+
+  // Row click → drilldown
+  container.querySelectorAll('.lv-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const id    = row.dataset.id;
       const entry = cache[id];
       if (entry?.feature) openDrilldown(entry.feature);
-    });
-    el.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') el.click();
     });
   });
 }
 
-// ─── By Region screen ────────────────────────────────────────────────────────
+
 export function updateByRegion() {
   const container = document.getElementById('screen-by-region');
   if (!container) return;
