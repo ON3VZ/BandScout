@@ -57,7 +57,7 @@ export async function buildCache(features, onProgress) {
 
     for (const feature of chunk) {
       const props = feature.properties ?? {};
-      const dxccId = props.dxcc_id ?? props.prefix ?? String(chunkStart);
+      const dxccId = String(props.dxcc_id ?? props.prefix ?? chunkStart);
 
       const dxccLat = props.lat ?? getCentroidLat(feature);
       const dxccLon = props.lon ?? getCentroidLon(feature);

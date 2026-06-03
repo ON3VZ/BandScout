@@ -88,7 +88,7 @@ function buildDxccLayer() {
  * Falls back to neutral grey if cache not ready.
  */
 function featureStyle(feature) {
-  const id    = feature.properties?.dxcc_id;
+  const id    = String(feature.properties?.dxcc_id ?? feature.properties?.prefix ?? '');
   const band  = state.activeBand;
   const step  = state.activeTimeOffset;
   const cached = state.scoreCache?.[id]?.steps?.[step];
@@ -120,7 +120,7 @@ function onEachFeature(feature, layer) {
 
   // Hover tooltip
   layer.on('mouseover', (e) => {
-    const id    = feature.properties?.dxcc_id;
+    const id    = String(feature.properties?.dxcc_id ?? feature.properties?.prefix ?? '');
     const band  = state.activeBand;
     const step  = state.activeTimeOffset;
     const cached = state.scoreCache?.[id]?.steps?.[step];
@@ -165,7 +165,7 @@ export function renderScores() {
   const step = state.activeTimeOffset;
 
   dxccLayer.eachLayer(layer => {
-    const id     = layer.feature?.properties?.dxcc_id;
+    const id     = String(layer.feature?.properties?.dxcc_id ?? layer.feature?.properties?.prefix ?? '');
     const cached = state.scoreCache?.[id]?.steps?.[step];
     const score  = cached?.[band] ?? 0;
     const isGL   = isGreylineFeature(layer.feature);
@@ -227,120 +227,27 @@ export function renderTerminator(timeStep) {
   if (typeof SunCalc === 'undefined') return;
 
   const canvas = terminatorCtx.canvas;
-  terminatorCtx.clearRect(0, 0, canvas.width, canvas.height);
+  const w = canvas.width, h = canvas.height;
+  terminatorCtx.clearRect(0, 0, w, h);
 
   const date = new Date(Date.now() + timeStep * 30 * 60 * 1000);
-  const R2D = 180 / Math.PI, D2R = Math.PI / 180;
+  const STEP = 5; // pixels per grid-vak
+  terminatorCtx.fillStyle = 'rgba(0,0,22,0.40)';
 
-  // ── Stap 1: Bereken zonsdeclinatie (subsolar latitude) ────────────────
-  // Gebruik SunCalc.getPosition op de equator bij de subsolar longitude.
-  // Subsolar longitude = de longitude waar het nu zonnige middag is.
-  const utcH = date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600;
-  const subSolarLon = -(utcH - 12) * 15; // 15° per uur
-
-  // Declinatie: de breedtegraad waar de zon recht boven staat
-  // Benadering via SunCalc op de subsolar longitude
-  let decl = 0;
-  {
-    // SunCalc.getPosition geeft altitude in radialen = declinatie op solar noon lon
-    // Op de meridian van solar noon: altitude ≈ 90° - |lat - decl|
-    // Dus decl ≈ lat waar altitude maximaal is
-    let best = -Infinity;
-    for (let lat = -90; lat <= 90; lat += 2) {
-      const a = SunCalc.getPosition(date, lat, subSolarLon).altitude;
-      if (a > best) { best = a; decl = lat; }
-    }
-    // Fine-tune ±2° in 0.25° stappen
-    let best2 = -Infinity;
-    for (let dlat = -2; dlat <= 2; dlat += 0.25) {
-      const a = SunCalc.getPosition(date, decl + dlat, subSolarLon).altitude;
-      if (a > best2) { best2 = a; decl = decl + dlat; }
+  // Sample op 5×5 grid — sneller dan per pixel, correct resultaat
+  for (let py = 0; py < h; py += STEP) {
+    for (let px = 0; px < w; px += STEP) {
+      let ll;
+      try { ll = leafletMap.containerPointToLatLng([px + STEP / 2, py + STEP / 2]); }
+      catch { continue; }
+      if (SunCalc.getPosition(date, ll.lat, ll.lng).altitude < 0)
+        terminatorCtx.fillRect(px, py, STEP, STEP);
     }
   }
-
-  // ── Stap 2: Bereken terminatorpunten via uurhoek ──────────────────────
-  // Op de terminator geldt: cos(uurhoek) = -tan(lat) * tan(decl)
-  // Terminator longitude = subsolar longitude ± uurhoek
-  const pts = [];
-  const declR = decl * D2R;
-
-  for (let lat = -89; lat <= 89; lat += 1) {
-    const latR = lat * D2R;
-    const cosH = -Math.tan(latR) * Math.tan(declR);
-
-    if (Math.abs(cosH) > 1) {
-      // Zonloze nacht (cosH < -1) of middernachtzon (cosH > 1)
-      // Geen terminatorpunt op deze breedtegraad
-      continue;
-    }
-
-    const H = Math.acos(cosH) * R2D; // uurhoek in graden
-
-    // Twee terminatorpunten per breedtegraad (opkomst en ondergang)
-    const lon1 = ((subSolarLon - H + 540) % 360) - 180; // opkomst (west)
-    const lon2 = ((subSolarLon + H + 540) % 360) - 180; // ondergang (oost)
-    pts.push({ lat, lon: lon1, side: 'dawn' });
-    pts.push({ lat, lon: lon2, side: 'dusk' });
-  }
-
-  // Sorteer opkomst- en ondergangslijnen apart als gesorteerde paden
-  const dawn = pts.filter(p => p.side === 'dawn').sort((a, b) => a.lat - b.lat);
-  const dusk = pts.filter(p => p.side === 'dusk').sort((a, b) => b.lat - a.lat);
-
-  // Combineer tot een gesloten pad: dawn van -89 → 89, dan dusk van 89 → -89
-  const path = [...dawn, ...dusk];
-
-  if (path.length < 4) {
-    // Geen terminator zichtbaar (bijv. poolzomer/winter): hele canvas = nacht of dag
-    const midElev = SunCalc.getPosition(date, 0, subSolarLon).altitude;
-    if (midElev < 0) {
-      // Volledige nacht
-      terminatorCtx.fillStyle = 'rgba(0,0,20,0.42)';
-      terminatorCtx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    return;
-  }
-
-  // ── Stap 3: Teken het nachtzijde-pad ─────────────────────────────────
-  terminatorCtx.save();
-  terminatorCtx.fillStyle = 'rgba(0,0,20,0.42)';
-  terminatorCtx.beginPath();
-
-  let started = false;
-  for (const { lat, lon } of path) {
-    try {
-      const p = leafletMap.latLngToContainerPoint([lat, lon]);
-      if (!isFinite(p.x) || !isFinite(p.y)) continue;
-      if (!started) { terminatorCtx.moveTo(p.x, p.y); started = true; }
-      else           terminatorCtx.lineTo(p.x, p.y);
-    } catch {}
-  }
-
-  terminatorCtx.closePath();
-  terminatorCtx.fill();
-  terminatorCtx.restore();
 }
 
-// ─────────────────────────────────────────────
-// Greyline helpers
-// ─────────────────────────────────────────────
 
-function isGreylineFeature(feature) {
-  if (!feature?.properties) return false;
-  const { lat, lon } = feature.properties;
-  if (lat == null || lon == null) return false;
-  const date = new Date(Date.now() + state.activeTimeOffset * 30 * 60 * 1000);
-  return isInGreyline(date, lat, lon);
-}
 
-// ─────────────────────────────────────────────
-// Band selector UI
-// ─────────────────────────────────────────────
-
-/**
- * Render the band selector tabs for the map screen.
- * Filtered by licence class.
- */
 export function renderBandSelector() {
   const container = document.getElementById('band-selector');
   if (!container) return;
