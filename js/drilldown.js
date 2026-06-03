@@ -11,7 +11,7 @@ import { state, scoreClass, scoreToHex, getActiveBands, BAND_FREQ_MHZ } from './
 import { t } from './i18n.js';
 import { haversineKm, bearingDeg, fmtKm, fmtAzimuth, antipode, showToast } from './utils.js';
 import { buildReasonString } from './propagation.js';
-import { stepToDate } from './timeline.js';
+import { stepToDate } from './cache.js';
 import { getBandPlanSnippet } from './bandplan.js';
 
 // ─────────────────────────────────────────────

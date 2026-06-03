@@ -13,7 +13,7 @@
 
 import { state, scoreToHex, scoreClass, getActiveBands } from './state.js';
 import { haversineKm, isInGreyline, getCSSVar } from './utils.js';
-import { openDrilldown } from './drilldown.js';
+// drilldown wordt geopend via custom event (geen directe import — voorkomt circulaire dep)
 
 let leafletMap = null;
 let dxccLayer  = null;
@@ -114,7 +114,7 @@ function onEachFeature(feature, layer) {
     if (!feature.properties) return;
     state.selectedDxcc = feature;
     state.drilldownPath = 'short';
-    openDrilldown(feature);
+    window.dispatchEvent(new CustomEvent('hfbs:country-click', { detail: feature }));
     highlightLayer(layer);
   });
 

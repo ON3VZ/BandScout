@@ -9,7 +9,7 @@
 
 import { state } from './state.js';
 import { formatUTC } from './utils.js';
-import { renderScores } from './map.js';
+
 import { update as updateListview } from './listview.js';
 
 const PLAY_INTERVAL_MS = 300;
@@ -90,11 +90,11 @@ export function setStep(step, fromCode = false) {
   updateDisplay(clamped);
 
   if (state.scoreCacheBuilt) {
-    renderScores();
+    window.__hfbs?.renderScores?.();
 
     // If a list screen is visible, update it too
     const byBand = document.getElementById('screen-by-band');
-    if (byBand && !byBand.hidden) updateListview();
+    if (byBand && !byBand.hidden) window.__hfbs?.updateListview?.();
   }
 
   updateSliderFill(clamped);

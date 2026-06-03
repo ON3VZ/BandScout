@@ -14,7 +14,7 @@ import { fetchAll as fetchNoaa,
          updateConditionsUI,
          updateAlertsUI }               from './noaa.js';
 import { init as initMap,
-         renderBandSelector,
+         renderBandSelector, renderScores, renderTerminator,
          showLoading, rebuild }         from './map.js';
 import { init as initTimeline }         from './timeline.js';
 import { updateListview, updateByBand,
@@ -84,6 +84,15 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
   // 8. Kaart initialiseren
   try { initMap(features); } catch (e) { console.error('[app] Map init', e); }
 
+  // 8b. Koppel map events aan drilldown (ontkoppelde architectuur — geen circulaire imports)
+  window.addEventListener('hfbs:country-click', async (e) => {
+    const { openDrilldown } = await import('./drilldown.js');
+    openDrilldown(e.detail);
+  });
+
+  // 8c. Registreer window callbacks voor timeline → map/listview communicatie
+  window.__hfbs = window.__hfbs ?? {};
+
   // 9. Tijdlijn
   initTimeline();
 
@@ -97,6 +106,11 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
 
   // 12. Eerste render
   try { rebuild(); }            catch(e) { console.error('[app] rebuild', e); }
+
+  // Zet window callbacks voor timeline (na import van map + listview)
+  window.__hfbs.renderScores    = () => { try { renderScores(); } catch {} };
+  window.__hfbs.renderTerminator = (...a) => { try { renderTerminator(...a); } catch {} };
+  window.__hfbs.updateListview  = () => { try { updateListview(); } catch {} };
   try { showLoading(false); }   catch(e) { /* ignore */ }
   try { renderBandSelector(); } catch(e) { console.error('[app] bandselector', e); }
   try { updateListview(); }     catch(e) { console.error('[app] listview', e); }
