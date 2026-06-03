@@ -406,3 +406,7 @@
 
   #drilldown-handle { display: none; }
 }
+
+/* Panel zichtbaarheid via is-open class */
+#drilldown-panel { display: none; }
+#drilldown-panel.is-open { display: flex; }

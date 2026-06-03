@@ -91,8 +91,8 @@ function featureStyle(feature) {
   const id    = feature.properties?.dxcc_id;
   const band  = state.activeBand;
   const step  = state.activeTimeOffset;
-  const cached = state.scoreCache?.[band]?.[id]?.[step];
-  const score  = cached?.score ?? 0;
+  const cached = state.scoreCache?.[id]?.steps?.[step];
+  const score  = cached?.[band] ?? 0;
 
   const isGL = isGreylineFeature(feature);
   const fillColor  = scoreToHex(score);
@@ -123,8 +123,8 @@ function onEachFeature(feature, layer) {
     const id    = feature.properties?.dxcc_id;
     const band  = state.activeBand;
     const step  = state.activeTimeOffset;
-    const cached = state.scoreCache?.[band]?.[id]?.[step];
-    const score  = cached?.score ?? '?';
+    const cached = state.scoreCache?.[id]?.steps?.[step];
+    const score  = cached?.[band] ?? '?';
     const name   = feature.properties?.name ?? '';
     const prefix = feature.properties?.prefix ?? '';
 
@@ -166,8 +166,8 @@ export function renderScores() {
 
   dxccLayer.eachLayer(layer => {
     const id     = layer.feature?.properties?.dxcc_id;
-    const cached = state.scoreCache?.[band]?.[id]?.[step];
-    const score  = cached?.score ?? 0;
+    const cached = state.scoreCache?.[id]?.steps?.[step];
+    const score  = cached?.[band] ?? 0;
     const isGL   = isGreylineFeature(layer.feature);
 
     layer.setStyle({

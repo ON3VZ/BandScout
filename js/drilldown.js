@@ -32,7 +32,9 @@ export function openDrilldown(feature) {
 
 export function closeDrilldown() {
   const panel = document.getElementById('drilldown-panel');
-  if (panel) panel.hidden = true;
+  if (!panel) return;
+  panel.classList.remove('is-open');
+  panel.setAttribute('hidden', '');
   state.selectedDxcc = null;
 }
 
@@ -130,11 +132,11 @@ function renderScoresTable(props, rxLat, rxLon) {
 
   // Collect scores
   const rows = bands.map(band => {
-    const cached = state.scoreCache?.[band]?.[id]?.[step];
+    const cached = state.scoreCache?.[id]?.steps?.[step];
     return {
       band,
-      score:    cached?.score    ?? 0,
-      score100W: cached?.score100W ?? 0,
+      score:    cached?.[band]    ?? 0,
+      score100W: cached?.[band]100W ?? 0,
       details:  cached?.details  ?? {},
     };
   });
@@ -300,7 +302,7 @@ function renderActions(props, azDeg) {
 
   container.innerHTML = `
     <button class="action-btn primary" id="dd-btn-watch">
-      📡 ${t('drilldown.addwatch')}
+      📡 ${t('drilldown.copyheading')}
     </button>
     <button class="action-btn" id="dd-btn-copy">
       🧭 ${t('drilldown.copyheading')}

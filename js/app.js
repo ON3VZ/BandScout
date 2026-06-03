@@ -70,11 +70,14 @@ const SCREEN_ORDER = ['map', 'by-band', 'by-region', 'opening', 'setup'];
     console.warn('[app] NOAA fetch mislukt; cached waarden gebruikt', e);
   }
 
-  // 6. DXCC GeoJSON laden
+  // 6. DXCC GeoJSON + radio-profielen laden
   let features = [];
   try {
     showGlobalLoading(true, t('ui.loading_dxcc'));
-    features = await loadDxcc();
+    [features] = await Promise.all([
+      loadDxcc(),
+      loadRadioProfiles(),
+    ]);
   } catch (e) {
     console.error('[app] DXCC data laden mislukt', e);
     showGlobalLoading(false);
@@ -203,6 +206,13 @@ function initNav() {
     el.addEventListener('click', () => switchScreen(el.dataset.goto));
   });
 
+  // Escape sluit drilldown
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      import('./drilldown.js').then(m => m.closeDrilldown?.());
+    }
+  });
+
   // Keyboard: ← → wisselt scherm (behalve in inputs)
   document.addEventListener('keydown', e => {
     if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
@@ -309,6 +319,17 @@ function showNudge(msg) {
 }
 
 // ─── DXCC GeoJSON laden ───────────────────────────────────────────────────────
+async function loadRadioProfiles() {
+  try {
+    const res = await fetch('./data/radio-profiles.json');
+    if (!res.ok) return;
+    state.radioProfiles = await res.json();
+    console.log('[app] Radio profiles geladen:', Object.keys(state.radioProfiles).length);
+  } catch (e) {
+    console.warn('[app] Radio profiles laden mislukt', e);
+  }
+}
+
 async function loadDxcc() {
   const res = await fetch('./data/dxcc.geojson');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
