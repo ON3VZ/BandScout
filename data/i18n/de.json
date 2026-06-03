@@ -187,5 +187,6 @@
   "toast.cache.built": "Ausbreitungskarte bereit",
   "toast.settings.saved": "Einstellungen gespeichert",
   "ui.help": "Hilfe",
-  "help.section_title": "Ausbreitungs-Glossar"
+  "help.section_title": "Ausbreitungs-Glossar",
+  "ui.rendering_map": "Ausbreitungskarte bereit — einen Moment bitte…"
 }

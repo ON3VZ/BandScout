@@ -97,13 +97,21 @@ const SCREEN_ORDER = ['map', 'by-band', 'by-region', 'opening', 'setup'];
     updateLoadingProgress(pct, label);
   });
 
-  // 10. Eerste render
+  // 10. Toon "kaart wordt opgebouwd" terwijl we renderen
+  showGlobalLoading(true, t('ui.rendering_map') !== 'ui.rendering_map'
+    ? t('ui.rendering_map')
+    : 'Propagation map ready — please wait…');
+
+  // Yield even zodat de browser het label kan tonen
+  await new Promise(r => setTimeout(r, 50));
+
+  // 11. Eerste render
   rebuild();            // kaartkleur
   updateListview();     // By-Band / By-Region
   updateOpening();      // Opening Soon
   renderBandSelector();
 
-  // 11. Loading verbergen
+  // 12. Loading verbergen
   showGlobalLoading(false);
 
   // 12. Eerste keer zonder grid → meteen naar Settings

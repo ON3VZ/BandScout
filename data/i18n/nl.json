@@ -187,5 +187,6 @@
   "toast.cache.built": "Propagatiekaart gereed",
   "toast.settings.saved": "Instellingen opgeslagen",
   "ui.help": "Help",
-  "help.section_title": "Propagatiebegrippen"
+  "help.section_title": "Propagatiebegrippen",
+  "ui.rendering_map": "Propagatiekaart klaar — even geduld…"
 }

@@ -187,5 +187,6 @@
   "toast.cache.built": "Mapa de propagação pronto",
   "toast.settings.saved": "Configurações salvas",
   "ui.help": "Ajuda",
-  "help.section_title": "Glossário de propagação"
+  "help.section_title": "Glossário de propagação",
+  "ui.rendering_map": "Mapa de propagação pronto — um momento…"
 }

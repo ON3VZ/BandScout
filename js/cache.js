@@ -19,7 +19,7 @@ import { calcReliability } from './propagation.js';
 import { getKpAtStep }     from './noaa.js';
 
 const TOTAL_STEPS    = 48;
-const CHUNK_SIZE     = 5;   // DXCC entities per animation-frame chunk
+const CHUNK_SIZE     = 15;   // DXCC entities per animation-frame chunk
 const STEP_MINUTES   = 30;
 
 // ─── Progress callback type ─────────────────────────────────────────────────
