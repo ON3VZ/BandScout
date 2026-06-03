@@ -310,25 +310,14 @@ function renderActions(props, azDeg) {
   const container = document.getElementById('drilldown-actions');
   if (!container) return;
 
+  const azText = `${props.name} (${props.prefix}) — ${fmtAzimuth(azDeg)}`;
   container.innerHTML = `
-    <button class="action-btn primary" id="dd-btn-watch">
-      📡 ${t('drilldown.copyheading')}
-    </button>
-    <button class="action-btn" id="dd-btn-copy">
-      🧭 ${t('drilldown.copyheading')}
-    </button>
+    <button class="action-btn primary" id="dd-copy-hdg">🧭 Copy heading</button>
   `;
-
-  document.getElementById('dd-btn-copy')?.addEventListener('click', () => {
-    const text = `${props.name} (${props.prefix}) — ${fmtAzimuth(azDeg)}`;
-    navigator.clipboard?.writeText(text).then(() => {
-      showToast(t('drilldown.copied'));
-    });
-  });
-
-  document.getElementById('dd-btn-watch')?.addEventListener('click', () => {
-    const url = `https://www.on3vz.eu/propagation-watch/?dxcc=${encodeURIComponent(props.prefix ?? '')}`;
-    window.open(url, '_blank', 'noopener');
+  document.getElementById('dd-copy-hdg')?.addEventListener('click', () => {
+    navigator.clipboard?.writeText(azText)
+      .then(() => showToast('Gekopieerd: ' + azText, 'success'))
+      .catch(() => showToast(azText, 'info'));
   });
 }
 

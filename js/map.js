@@ -101,7 +101,7 @@ function featureStyle(feature) {
 
   return {
     fillColor,
-    fillOpacity: state.scoreCacheBuilt ? 0.72 : 0.15,
+    fillOpacity: 0.72,
     color:       borderColor,
     weight:      borderWidth,
     opacity:     1,
@@ -227,23 +227,109 @@ export function renderTerminator(timeStep) {
   if (typeof SunCalc === 'undefined') return;
 
   const canvas = terminatorCtx.canvas;
-  const w = canvas.width, h = canvas.height;
-  terminatorCtx.clearRect(0, 0, w, h);
+  const W = canvas.width, H = canvas.height;
+  terminatorCtx.clearRect(0, 0, W, H);
 
   const date = new Date(Date.now() + timeStep * 30 * 60 * 1000);
-  const STEP = 5; // pixels per grid-vak
-  terminatorCtx.fillStyle = 'rgba(0,0,22,0.40)';
+  const D2R = Math.PI / 180, R2D = 180 / Math.PI;
 
-  // Sample op 5×5 grid — sneller dan per pixel, correct resultaat
-  for (let py = 0; py < h; py += STEP) {
-    for (let px = 0; px < w; px += STEP) {
-      let ll;
-      try { ll = leafletMap.containerPointToLatLng([px + STEP / 2, py + STEP / 2]); }
-      catch { continue; }
-      if (SunCalc.getPosition(date, ll.lat, ll.lng).altitude < 0)
-        terminatorCtx.fillRect(px, py, STEP, STEP);
-    }
+  // Subsolar longitude
+  const utcH = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+  const subLon = -(utcH - 12) * 15;
+
+  // Declinatie
+  let decl = 0, bestA = -Infinity;
+  for (let lat = -90; lat <= 90; lat++) {
+    const a = SunCalc.getPosition(date, lat, subLon).altitude;
+    if (a > bestA) { bestA = a; decl = lat; }
   }
+
+  // Verfijn declinatie in 0.1° stappen
+  for (let dlat = -1; dlat <= 1; dlat += 0.1) {
+    const a = SunCalc.getPosition(date, decl + dlat, subLon).altitude;
+    if (a > bestA) { bestA = a; decl += dlat; }
+  }
+
+  const declR = decl * D2R;
+
+  // Genereer dawn en dusk terminatorpunten per 0.5° breedtegraad
+  const dawn = [], dusk = [];
+  for (let lat = -89.5; lat <= 89.5; lat += 0.5) {
+    const cosH = -Math.tan(lat * D2R) * Math.tan(declR);
+    if (Math.abs(cosH) > 1) continue; // poolgebied, sla over
+    const H = Math.acos(cosH) * R2D;
+    dawn.push([lat, ((subLon - H + 540) % 360) - 180]);
+    dusk.push([lat, ((subLon + H + 540) % 360) - 180]);
+  }
+
+  if (dawn.length === 0) {
+    // Volledige dag of nacht: check of het nacht is
+    const elev = SunCalc.getPosition(date, 0, 0).altitude;
+    if (elev < 0) {
+      terminatorCtx.fillStyle = 'rgba(0,0,22,0.42)';
+      terminatorCtx.fillRect(0, 0, W, H);
+    }
+    return;
+  }
+
+  function toXY(lat, lon) {
+    try {
+      const p = leafletMap.latLngToContainerPoint([lat, lon]);
+      if (isFinite(p.x) && isFinite(p.y)) return { x: p.x, y: p.y };
+    } catch {}
+    return null;
+  }
+
+  // Antisolar punt bepaalt welke kant nacht is
+  const antiLon = ((subLon + 180 + 540) % 360) - 180;
+  const antiPt  = toXY(-decl, antiLon);
+  const nightRight = antiPt ? antiPt.x > W / 2 : false;
+
+  terminatorCtx.save();
+  terminatorCtx.fillStyle = 'rgba(0,0,22,0.42)';
+  terminatorCtx.beginPath();
+
+  let firstX = null, lastX = null, lastY = null;
+
+  // Dawn lijn: lat van laag naar hoog
+  let started = false;
+  for (const [lat, lon] of dawn) {
+    const p = toXY(lat, lon);
+    if (!p) continue;
+    if (!started) {
+      terminatorCtx.moveTo(p.x, p.y);
+      firstX = p.x;
+      started = true;
+    } else {
+      terminatorCtx.lineTo(p.x, p.y);
+    }
+    lastX = p.x; lastY = p.y;
+  }
+
+  if (!started) { terminatorCtx.restore(); return; }
+
+  // Sluit via de "nacht" kant van de kaartrand (van dawn-einde naar dusk-einde)
+  if (nightRight) {
+    // Nacht is rechts: ga naar rechterrand, dan omhoog naar dusk-startpunt
+    terminatorCtx.lineTo(W, lastY ?? H);
+    terminatorCtx.lineTo(W, 0);
+  } else {
+    // Nacht is links: ga naar linkerrand
+    terminatorCtx.lineTo(0, lastY ?? H);
+    terminatorCtx.lineTo(0, 0);
+  }
+
+  // Dusk lijn: lat van hoog naar laag (omgekeerd)
+  for (let k = dusk.length - 1; k >= 0; k--) {
+    const [lat, lon] = dusk[k];
+    const p = toXY(lat, lon);
+    if (!p) continue;
+    terminatorCtx.lineTo(p.x, p.y);
+  }
+
+  terminatorCtx.closePath();
+  terminatorCtx.fill();
+  terminatorCtx.restore();
 }
 
 // ─── Greyline helper ──────────────────────────────────────────────────────────
