@@ -115,8 +115,8 @@
 
 .screen[hidden] { display: none !important; }
 .screen { display: none; }
-.screen.is-active, .screen.active { display: block; }
-#screen-map.is-active, #screen-map.active { display: flex; }
+.screen.is-active { display: block; }
+#screen-map.is-active { display: flex; }
 
 /* Map screen has no scroll (Leaflet fills it) */
 #screen-map {
