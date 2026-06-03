@@ -22,6 +22,7 @@ import { updateListview, updateByBand,
 import { updateOpening }               from './opening.js';
 import { buildCache, invalidateCache }  from './cache.js';
 import { gridToLatLon }                from './utils.js';
+import { openDrilldown, init as initDrilldown } from './drilldown.js';
 
 const NOAA_REFRESH_MS = 15 * 60 * 1000;
 const LOADING_ID      = 'loading-overlay';
@@ -84,11 +85,11 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
   // 8. Kaart initialiseren
   try { initMap(features); } catch (e) { console.error('[app] Map init', e); }
 
-  // 8b. Koppel map events aan drilldown (ontkoppelde architectuur — geen circulaire imports)
-  window.addEventListener('hfbs:country-click', async (e) => {
-    const { openDrilldown } = await import('./drilldown.js');
+  // 8b. Koppel map events aan drilldown
+  window.addEventListener('hfbs:country-click', (e) => {
     openDrilldown(e.detail);
   });
+  initDrilldown(); // swipe-close en pad-toggle
 
   // 8c. Registreer window callbacks voor timeline → map/listview communicatie
   window.__hfbs = window.__hfbs ?? {};
