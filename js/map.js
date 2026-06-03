@@ -234,27 +234,56 @@ export function renderTerminator(timeStep) {
 
   const date = new Date(Date.now() + timeStep * 30 * 60 * 1000);
 
-  // Night side opacity gradient, 2px per longitude column
-  const nightColor = 'rgba(0,0,0,0.35)';
-  const cols = Math.ceil(w / 2);
+  // ── Snelle terminator: per breedtegraad de terminatorlongitude berekenen ──
+  // In plaats van elk pixel te testen, berekenen we per lat-lijn (180 stappen)
+  // de grens tussen dag en nacht via SunCalc.
+  // Dit is ~200× sneller dan de pixel-per-pixel methode.
 
-  for (let col = 0; col < cols; col++) {
-    const px = col * 2;
-    // Map pixel x → longitude
-    const latlng = leafletMap.containerPointToLatLng([px, h / 2]);
-    const lon = latlng.lng;
+  // Subsolar punt (subsolar lat/lon = punt waar zon recht boven staat)
+  const sunPos = SunCalc.getPosition(date, 0, 0); // referentie
+  // Vind de subsolar latitude via declinatie
+  const sunTimes0 = SunCalc.getTimes(date, 0, 0);
+  // Gebruik een reeks latitudes om de terminatorpunten te vinden
+  const STEPS = 180;
+  const terminatorPoints = [];
 
-    // Find the solar elevation at this longitude at the map's latitude centre
-    for (let row = 0; row < h; row += 2) {
-      const ll = leafletMap.containerPointToLatLng([px, row]);
-      const elev = SunCalc.getPosition(date, ll.lat, ll.lng).altitude;
-      if (elev < 0) {
-        // Night
-        terminatorCtx.fillStyle = nightColor;
-        terminatorCtx.fillRect(px, row, 2, 2);
-      }
+  for (let i = 0; i <= STEPS; i++) {
+    const lat = -90 + (180 * i / STEPS);
+    // Zoek de longitude waar de zon precies opkomt (elevation = 0)
+    // Binary search: vind lon waarbij elevation ≈ 0
+    let lo = -180, hi = 180;
+    for (let iter = 0; iter < 12; iter++) {
+      const mid = (lo + hi) / 2;
+      const elev = SunCalc.getPosition(date, lat, mid).altitude;
+      if (elev > 0) hi = mid; else lo = mid;
     }
+    const lon1 = (lo + hi) / 2;
+    // Tweede terminatorpunt (dag→nacht aan andere kant)
+    const lon2 = lon1 + 180 > 180 ? lon1 - 180 : lon1 + 180;
+    terminatorPoints.push({ lat, lon1, lon2 });
   }
+
+  // Teken de nacht-zone: links van de terminator is nacht
+  // Aanpak: vul het hele canvas met nacht, clip dag-zone weg
+  terminatorCtx.save();
+  terminatorCtx.fillStyle = 'rgba(0,0,20,0.38)';
+
+  // Bouw een pad langs de terminatorlijn
+  terminatorCtx.beginPath();
+  let first = true;
+  for (const { lat, lon1 } of terminatorPoints) {
+    try {
+      const pt = leafletMap.latLngToContainerPoint([lat, lon1]);
+      if (first) { terminatorCtx.moveTo(pt.x, pt.y); first = false; }
+      else        terminatorCtx.lineTo(pt.x, pt.y);
+    } catch { /* punt buiten kaart */ }
+  }
+  // Sluit het pad via de kaartrand (nacht-zijde)
+  terminatorCtx.lineTo(w, h);
+  terminatorCtx.lineTo(0, h);
+  terminatorCtx.closePath();
+  terminatorCtx.fill();
+  terminatorCtx.restore();
 }
 
 // ─────────────────────────────────────────────

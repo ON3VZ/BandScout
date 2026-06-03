@@ -70,6 +70,7 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
   try {
     showGlobalLoading(true, t('ui.loading_dxcc'));
     features = await loadDxcc();
+    state.dxccFeatures = features;  // populeer state zodat map.js + drilldown er aan kunnen
   } catch (e) {
     console.error('[app] DXCC laden mislukt', e);
     forceHideOverlay();
