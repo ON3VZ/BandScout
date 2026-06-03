@@ -16,6 +16,13 @@ const LOOK_AHEAD_STEPS = 12;  // 6 hours
 const STEP_MINUTES     = 30;
 
 // ─── Main render ─────────────────────────────────────────────────────────────
+function getOpenTier(score) {
+  if (score >= 76) return 'excellent';
+  if (score >= 51) return 'good';
+  if (score >= 31) return 'moderate';
+  return 'poor';
+}
+
 export function updateOpening() {
   const container = document.getElementById('screen-opening');
   if (!container) return;
@@ -129,12 +136,5 @@ export function updateOpening() {
       }
     });
   });
-}
-
-function getOpenTier(score) {
-  if (score >= 76) return 'excellent';
-  if (score >= 51) return 'good';
-  if (score >= 31) return 'moderate';
-  return 'poor';
 }
 
