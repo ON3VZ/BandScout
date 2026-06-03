@@ -97,18 +97,18 @@ const SCREEN_ORDER = ['map', 'by-band', 'by-region', 'opening', 'setup'];
     updateLoadingProgress(pct, label);
   });
 
-  // 10. Korte yield zodat de voortgangsbalk 100% kan tonen
+  // 10. Korte yield
   await new Promise(r => setTimeout(r, 80));
 
-  // 11. Eerste render — scoreCacheBuilt is nu true, rebuild kleurt de kaart
-  rebuild();            // kaartkleur
-  showLoading(false);   // verberg map-loading spinner
-  updateListview();     // By-Band / By-Region
-  updateOpening();      // Opening Soon
-  renderBandSelector();
+  // 11. Render (in try/catch zodat een fout de overlay niet blokkeert)
+  try { rebuild(); }          catch(e) { console.error('[app] rebuild fout', e); }
+  try { showLoading(false); } catch(e) { /* ignore */ }
+  try { updateListview(); }   catch(e) { console.error('[app] listview fout', e); }
+  try { updateOpening(); }    catch(e) { console.error('[app] opening fout', e); }
+  try { renderBandSelector(); } catch(e) { console.error('[app] bandselector fout', e); }
 
-  // 12. Loading verbergen
-  showGlobalLoading(false);
+  // 12. Overlay ALTIJD verwijderen — ongeacht of er fouten waren
+  forceHideOverlay();
 
   // 12. Eerste keer zonder grid → meteen naar Settings
   if (!settings.grid) {
@@ -255,6 +255,17 @@ export function switchScreen(name) {
 }
 
 // ─── Loading overlay ──────────────────────────────────────────────────────────
+function forceHideOverlay() {
+  const el = document.getElementById(LOADING_ID);
+  if (!el) return;
+  el.style.display    = 'none';
+  el.style.visibility = 'hidden';
+  el.style.opacity    = '0';
+  el.style.pointerEvents = 'none';
+  el.setAttribute('hidden', '');
+  el.classList.add('is-hidden');
+}
+
 function showGlobalLoading(visible, label = '') {
   const el = document.getElementById(LOADING_ID);
   if (!el) return;
