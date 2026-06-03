@@ -204,7 +204,7 @@ function renderRadioSettings() {
   const container = document.getElementById('drilldown-radio-settings');
   if (!container) return;
 
-  const radioKey = state.user.radio;
+  const radioKey = state.user.radioModel ?? state.user.radio;
   if (!radioKey) {
     container.innerHTML = `
       <div class="radio-settings-header">

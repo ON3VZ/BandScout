@@ -55,7 +55,7 @@ export function updateByBand() {
 
     // Score for active band at this step
     const bandScores = entry.steps?.[step] ?? {};
-    const score = bandScores[activeBand] ?? 0;
+    const score = bandScores[activeBand] ?? 0;  // correct
     const mini24h = buildMini24h(entry, activeBand);
 
     grouped[cont].push({
