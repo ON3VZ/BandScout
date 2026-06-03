@@ -27,7 +27,10 @@ export function openDrilldown(feature) {
   state.drilldownPath = 'short';
   render(feature);
   const panel = document.getElementById('drilldown-panel');
-  if (panel) panel.hidden = false;
+  if (panel) {
+    panel.removeAttribute('hidden');
+    panel.classList.add('is-open');
+  }
 }
 
 export function closeDrilldown() {
