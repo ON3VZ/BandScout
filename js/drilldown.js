@@ -29,6 +29,8 @@ export function openDrilldown(feature) {
   const panel = document.getElementById('drilldown-panel');
   if (panel) {
     panel.removeAttribute('hidden');
+    panel.style.display  = '';        // reset any inline style
+    panel.style.visibility = '';
     panel.classList.add('is-open');
   }
 }
@@ -38,6 +40,7 @@ export function closeDrilldown() {
   if (!panel) return;
   panel.classList.remove('is-open');
   panel.setAttribute('hidden', '');
+  panel.style.display = 'none';
   state.selectedDxcc = null;
 }
 
