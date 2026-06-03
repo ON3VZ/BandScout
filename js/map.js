@@ -227,75 +227,95 @@ export function renderTerminator(timeStep) {
   if (typeof SunCalc === 'undefined') return;
 
   const canvas = terminatorCtx.canvas;
-  const w = canvas.width;
-  const h = canvas.height;
-  terminatorCtx.clearRect(0, 0, w, h);
+  terminatorCtx.clearRect(0, 0, canvas.width, canvas.height);
 
   const date = new Date(Date.now() + timeStep * 30 * 60 * 1000);
-  const DEG = Math.PI / 180;
+  const R2D = 180 / Math.PI, D2R = Math.PI / 180;
 
-  // ── Subsolar punt ─────────────────────────────────────────────────────
-  // Solar declination = subsolar latitude
-  // Subsolar longitude: 180 - fractie_dag * 360
-  const utcSec = date.getUTCHours() * 3600 + date.getUTCMinutes() * 60 + date.getUTCSeconds();
-  const sunLon  = 180 - (utcSec / 86400) * 360;
+  // ── Stap 1: Bereken zonsdeclinatie (subsolar latitude) ────────────────
+  // Gebruik SunCalc.getPosition op de equator bij de subsolar longitude.
+  // Subsolar longitude = de longitude waar het nu zonnige middag is.
+  const utcH = date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600;
+  const subSolarLon = -(utcH - 12) * 15; // 15° per uur
 
-  // Declination via SunCalc altitude maximaliseren op de subsolar longitude
-  let sunLat = 0;
-  let bestElev = -Infinity;
-  for (let lat = -90; lat <= 90; lat += 1) {
-    const e = SunCalc.getPosition(date, lat, sunLon).altitude;
-    if (e > bestElev) { bestElev = e; sunLat = lat; }
+  // Declinatie: de breedtegraad waar de zon recht boven staat
+  // Benadering via SunCalc op de subsolar longitude
+  let decl = 0;
+  {
+    // SunCalc.getPosition geeft altitude in radialen = declinatie op solar noon lon
+    // Op de meridian van solar noon: altitude ≈ 90° - |lat - decl|
+    // Dus decl ≈ lat waar altitude maximaal is
+    let best = -Infinity;
+    for (let lat = -90; lat <= 90; lat += 2) {
+      const a = SunCalc.getPosition(date, lat, subSolarLon).altitude;
+      if (a > best) { best = a; decl = lat; }
+    }
+    // Fine-tune ±2° in 0.25° stappen
+    let best2 = -Infinity;
+    for (let dlat = -2; dlat <= 2; dlat += 0.25) {
+      const a = SunCalc.getPosition(date, decl + dlat, subSolarLon).altitude;
+      if (a > best2) { best2 = a; decl = decl + dlat; }
+    }
   }
 
-  // ── Genereer terminatorcurve (grootcirkel 90° van subsolar punt) ───────
-  const slat = sunLat * DEG;
-  const slon = sunLon * DEG;
-  const pts  = [];
+  // ── Stap 2: Bereken terminatorpunten via uurhoek ──────────────────────
+  // Op de terminator geldt: cos(uurhoek) = -tan(lat) * tan(decl)
+  // Terminator longitude = subsolar longitude ± uurhoek
+  const pts = [];
+  const declR = decl * D2R;
 
-  for (let az = 0; az <= 360; az += 1) {
-    const a   = az * DEG;
-    const lat = Math.asin(
-      Math.sin(slat) * 0 + Math.cos(slat) * Math.cos(a)   // d=90°: cos(90°)=0, sin(90°)=1
-    );
-    // Vereenvoudigd: voor d=90°
-    // lat = asin(cos(slat)*cos(az))
-    // dlon = atan2(sin(az), -sin(slat)*cos(az))  maar sin(slat)→beïnvloedt de rotatie
-    const latDeg = Math.asin(Math.cos(slat) * Math.cos(a)) / DEG;
-    const lonRad = slon + Math.atan2(Math.sin(a), -Math.sin(slat) * Math.cos(a));
-    const lonDeg = ((lonRad / DEG + 540) % 360) - 180;
-    pts.push([latDeg, lonDeg]);
+  for (let lat = -89; lat <= 89; lat += 1) {
+    const latR = lat * D2R;
+    const cosH = -Math.tan(latR) * Math.tan(declR);
+
+    if (Math.abs(cosH) > 1) {
+      // Zonloze nacht (cosH < -1) of middernachtzon (cosH > 1)
+      // Geen terminatorpunt op deze breedtegraad
+      continue;
+    }
+
+    const H = Math.acos(cosH) * R2D; // uurhoek in graden
+
+    // Twee terminatorpunten per breedtegraad (opkomst en ondergang)
+    const lon1 = ((subSolarLon - H + 540) % 360) - 180; // opkomst (west)
+    const lon2 = ((subSolarLon + H + 540) % 360) - 180; // ondergang (oost)
+    pts.push({ lat, lon: lon1, side: 'dawn' });
+    pts.push({ lat, lon: lon2, side: 'dusk' });
   }
 
-  // ── Antisolar punt (nacht-zijde) ───────────────────────────────────────
-  const antiLat = -sunLat;
-  const antiLon = ((sunLon + 180) % 360) - 180;
-  let antiPx = null;
-  try { antiPx = leafletMap.latLngToContainerPoint([antiLat, antiLon]); } catch {}
+  // Sorteer opkomst- en ondergangslijnen apart als gesorteerde paden
+  const dawn = pts.filter(p => p.side === 'dawn').sort((a, b) => a.lat - b.lat);
+  const dusk = pts.filter(p => p.side === 'dusk').sort((a, b) => b.lat - a.lat);
 
-  // ── Teken nacht-overlay ────────────────────────────────────────────────
+  // Combineer tot een gesloten pad: dawn van -89 → 89, dan dusk van 89 → -89
+  const path = [...dawn, ...dusk];
+
+  if (path.length < 4) {
+    // Geen terminator zichtbaar (bijv. poolzomer/winter): hele canvas = nacht of dag
+    const midElev = SunCalc.getPosition(date, 0, subSolarLon).altitude;
+    if (midElev < 0) {
+      // Volledige nacht
+      terminatorCtx.fillStyle = 'rgba(0,0,20,0.42)';
+      terminatorCtx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    return;
+  }
+
+  // ── Stap 3: Teken het nachtzijde-pad ─────────────────────────────────
   terminatorCtx.save();
-  terminatorCtx.fillStyle = 'rgba(0,0,20,0.40)';
+  terminatorCtx.fillStyle = 'rgba(0,0,20,0.42)';
   terminatorCtx.beginPath();
 
   let started = false;
-  for (const [lat, lon] of pts) {
+  for (const { lat, lon } of path) {
     try {
       const p = leafletMap.latLngToContainerPoint([lat, lon]);
+      if (!isFinite(p.x) || !isFinite(p.y)) continue;
       if (!started) { terminatorCtx.moveTo(p.x, p.y); started = true; }
       else           terminatorCtx.lineTo(p.x, p.y);
     } catch {}
   }
 
-  // Sluit pad via de kant waar het antisolar punt staat
-  const nightRight = antiPx ? antiPx.x > w / 2 : true;
-  if (nightRight) {
-    terminatorCtx.lineTo(w, 0);
-    terminatorCtx.lineTo(w, h);
-  } else {
-    terminatorCtx.lineTo(0, h);
-    terminatorCtx.lineTo(0, 0);
-  }
   terminatorCtx.closePath();
   terminatorCtx.fill();
   terminatorCtx.restore();
