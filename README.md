@@ -1,2 +1,2 @@
 # BandScout
-Band Scout for Ham Operators
+HF Band Scout for Ham Operators
