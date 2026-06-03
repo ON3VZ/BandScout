@@ -114,6 +114,9 @@
 }
 
 .screen[hidden] { display: none !important; }
+.screen { display: none; }
+.screen.is-active { display: block; }
+#screen-map.is-active { display: flex; }
 
 /* Map screen has no scroll (Leaflet fills it) */
 #screen-map {
