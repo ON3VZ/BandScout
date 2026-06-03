@@ -19,7 +19,7 @@ import { calcReliability } from './propagation.js';
 import { getKpAtStep }     from './noaa.js';
 
 const TOTAL_STEPS    = 48;
-const CHUNK_SIZE     = 15;   // DXCC entities per animation-frame chunk
+const CHUNK_SIZE     = 30;   // DXCC entities per animation-frame chunk
 const STEP_MINUTES   = 30;
 
 // ─── Progress callback type ─────────────────────────────────────────────────
@@ -187,7 +187,8 @@ export function stepToDate(step) {
 }
 
 function yieldToUI() {
-  return new Promise(resolve => requestAnimationFrame(() => resolve()));
+  // setTimeout ipv requestAnimationFrame — werkt ook in achtergrond-tabs
+  return new Promise(resolve => setTimeout(resolve, 0));
 }
 
 // Simple centroid extraction from GeoJSON geometry
