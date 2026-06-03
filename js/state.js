@@ -42,6 +42,7 @@ export const state = {
   // ── Active UI selections ──
   activeScreen:     'map',
   activeBand:       '20m',
+  selectedContinent: null,      // voor By Region scherm
   activeTimeOffset: 0,        // in 30-min steps (0 = now, 1 = +30min, ..., 47 = +23.5h)
 
   // ── Pre-computed 24h score cache ──

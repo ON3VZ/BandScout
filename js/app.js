@@ -96,6 +96,7 @@ const SCREEN_ORDER = ['map', 'by-band', 'by-region', 'opening', 'setup'];
   await buildCache(features, (pct, label) => {
     updateLoadingProgress(pct, label);
   });
+  state.scoreCacheBuilt = true; // extra zekerheid
 
   // 10. Korte yield
   await new Promise(r => setTimeout(r, 80));
@@ -240,9 +241,13 @@ export function switchScreen(name) {
   }
 
   currentScreen = name;
+  window.hfbsSwitchScreen = switchScreen;
 
-  // Settings scherm: lazy renderen
-  if (name === 'setup') renderSettings();
+  // Scherm-specifieke render
+  if (name === 'setup')    renderSettings();
+  if (name === 'by-band')  { import('./listview.js').then(m => m.updateByBand());   }
+  if (name === 'by-region'){ import('./listview.js').then(m => m.updateByRegion()); }
+  if (name === 'opening')  { import('./opening.js').then(m => m.updateOpening());   }
 
   // Kaart: resize triggeren na display:none → zichtbaar
   if (name === 'map') {

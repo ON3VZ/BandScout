@@ -30,9 +30,9 @@ export function updateByBand() {
   const container = document.getElementById('screen-by-band');
   if (!container) return;
 
-  const step      = state.ui.timeStep;
+  const step      = state.activeTimeOffset;
   const cache     = state.scoreCache;
-  const activeBand= state.ui.selectedBand;
+  const activeBand= state.activeBand;
 
   if (!cache || Object.keys(cache).length === 0) {
     container.innerHTML = `<div class="list-empty">${t('ui.loading')}</div>`;
@@ -145,7 +145,7 @@ export function updateByRegion() {
   const container = document.getElementById('screen-by-region');
   if (!container) return;
 
-  const step  = state.ui.timeStep;
+  const step  = state.activeTimeOffset;
   const cache = state.scoreCache;
 
   if (!cache || Object.keys(cache).length === 0) {
@@ -154,7 +154,7 @@ export function updateByRegion() {
   }
 
   // Selected region/DXCC from state (null = show continent list)
-  const selectedCont = state.ui.selectedContinent ?? null;
+  const selectedCont = state.selectedContinent ?? null;
 
   if (!selectedCont) {
     renderContinentList(container, cache, step);
@@ -209,7 +209,7 @@ function renderContinentList(container, cache, step) {
 
   container.querySelectorAll('.byregion-continent-row').forEach(el => {
     el.addEventListener('click', () => {
-      state.ui.selectedContinent = el.dataset.cont;
+      state.selectedContinent = el.dataset.cont;
       updateByRegion();
     });
     el.addEventListener('keydown', e => {
@@ -297,7 +297,7 @@ function renderDxccList(container, cache, step, cont) {
 
   // Back button
   document.getElementById('byregion-back')?.addEventListener('click', () => {
-    state.ui.selectedContinent = null;
+    state.selectedContinent = null;
     updateByRegion();
   });
 

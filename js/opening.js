@@ -26,7 +26,7 @@ export function updateOpening() {
     return;
   }
 
-  const currentStep = state.ui.timeStep;
+  const currentStep = state.activeTimeOffset;
   const openings    = findOpenings(cache, currentStep);
 
   if (openings.length === 0) {
