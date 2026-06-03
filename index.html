@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1A1F2E">
+  <meta name="description" content="Real-time HF propagation map for amateur radio operators">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="lib/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/drilldown.css">
+  <link rel="stylesheet" href="css/timeline.css">
+  <link rel="stylesheet" href="css/listview.css">
+  <link rel="stylesheet" href="css/opening.css">
+  <link rel="stylesheet" href="css/setup.css">
+  <title>HF Band Scout</title>
+</head>
+<body>
+
+  <!-- Top bar: always visible -->
+  <header id="topbar" role="banner">
+    <div id="topbar-logo" aria-label="HF Band Scout">
+      <span class="logo-icon" aria-hidden="true">📡</span>
+      <span class="logo-text">HF Band Scout</span>
+    </div>
+    <div id="topbar-conditions" aria-live="polite" aria-label="Solar conditions">
+      <span id="cond-kp" class="cond-badge" title="Geomagnetic Kp index"></span>
+      <span id="cond-sfi" class="cond-badge" title="Solar Flux Index"></span>
+      <span id="cond-age" class="cond-age"></span>
+    </div>
+    <button id="btn-settings" class="icon-btn" aria-label="Open settings" title="Settings">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 1v2M10 17v2M1 10h2M17 10h2M3.22 3.22l1.42 1.42M15.36 15.36l1.42 1.42M3.22 16.78l1.42-1.42M15.36 4.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Navigation tabs -->
+  <nav id="app-nav" role="navigation" aria-label="Main navigation">
+    <button class="nav-tab active" data-screen="map" aria-current="page" data-i18n="nav.map">Map</button>
+    <button class="nav-tab" data-screen="by-band" data-i18n="nav.byband">By Band</button>
+    <button class="nav-tab" data-screen="by-region" data-i18n="nav.byregion">By Region</button>
+    <button class="nav-tab" data-screen="opening" data-i18n="nav.opening">Opening</button>
+  </nav>
+
+  <!-- Screen: World Map -->
+  <section id="screen-map" class="screen active" aria-label="World propagation map">
+
+    <!-- Band selector row -->
+    <div id="band-selector" role="tablist" aria-label="Band selection"></div>
+
+    <!-- Map + overlay container -->
+    <div id="map-container">
+      <div id="leaflet-map" aria-label="World map with propagation scores"></div>
+      <canvas id="terminator-canvas" aria-hidden="true"></canvas>
+
+      <!-- Legend -->
+      <div id="map-legend" aria-label="Score colour legend">
+        <div class="legend-title" data-i18n="legend.title">Signal</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--score-excellent)"></span><span>76–99%</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--score-good)"></span><span>51–75%</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--score-moderate)"></span><span>31–50%</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--score-poor)"></span><span>16–30%</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--score-marginal)"></span><span>1–15%</span></div>
+        <div class="legend-row"><span class="legend-swatch" style="background:var(--score-closed)"></span><span data-i18n="score.closed">Closed</span></div>
+      </div>
+
+      <!-- Loading overlay -->
+      <div id="map-loading" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p data-i18n="map.loading">Computing propagation…</p>
+      </div>
+    </div>
+
+    <!-- Time scrubber bar -->
+    <div id="timeline-bar" role="group" aria-label="Time controls">
+      <button id="btn-now" class="tl-btn" data-i18n="map.now" aria-label="Jump to current time">Now</button>
+      <div class="tl-slider-wrap">
+        <input type="range" id="time-slider" min="0" max="47" step="1" value="0"
+               aria-label="Time offset in 30-minute steps" aria-valuetext="Now">
+        <span id="time-display" class="tl-time" aria-live="polite"></span>
+      </div>
+      <button id="btn-play" class="tl-btn tl-play" aria-label="Play animation" aria-pressed="false">
+        <span class="play-icon" aria-hidden="true">▶</span>
+      </button>
+    </div>
+
+    <!-- Solar conditions bar (collapsible) -->
+    <div id="conditions-bar">
+      <button id="conditions-toggle" class="cond-toggle" aria-expanded="true" aria-controls="conditions-detail">
+        <span data-i18n="conditions.label">Conditions</span>
+        <span class="cond-chevron" aria-hidden="true">▾</span>
+      </button>
+      <div id="conditions-detail">
+        <div class="cond-item">
+          <span class="cond-label" data-i18n="conditions.kp">Kp</span>
+          <span id="cond-kp-detail" class="cond-value">—</span>
+        </div>
+        <div class="cond-item">
+          <span class="cond-label" data-i18n="conditions.sfi">SFI</span>
+          <span id="cond-sfi-detail" class="cond-value">—</span>
+        </div>
+        <div class="cond-item">
+          <span class="cond-label" data-i18n="conditions.band">Band</span>
+          <span id="cond-band-detail" class="cond-value">—</span>
+        </div>
+        <div class="cond-item">
+          <span class="cond-label" data-i18n="conditions.updated">Updated</span>
+          <span id="cond-age-detail" class="cond-value">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts bar -->
+    <div id="alerts-bar" hidden aria-live="assertive"></div>
+  </section>
+
+  <!-- Screen: By Band → Region list -->
+  <section id="screen-by-band" class="screen" hidden aria-label="Regions reachable by band">
+    <div id="byband-controls">
+      <div id="byband-band-selector" role="tablist" aria-label="Select band"></div>
+      <div id="byband-filters">
+        <button class="filter-btn active" data-filter="reachable" data-i18n="filter.reachable">Reachable</button>
+        <button class="filter-btn" data-filter="all" data-i18n="filter.all">All</button>
+        <select id="byband-continent" aria-label="Filter by continent">
+          <option value="" data-i18n="filter.allcontinents">All continents</option>
+          <option value="AF">Africa</option>
+          <option value="AN">Antarctica</option>
+          <option value="AS">Asia</option>
+          <option value="EU">Europe</option>
+          <option value="NA">North America</option>
+          <option value="OC">Oceania</option>
+          <option value="SA">South America</option>
+        </select>
+      </div>
+    </div>
+    <div id="byband-list" role="list" aria-label="Regions by score"></div>
+  </section>
+
+  <!-- Screen: By Region → Band list -->
+  <section id="screen-by-region" class="screen" hidden aria-label="Bands available per region">
+    <div id="byregion-controls">
+      <div id="byregion-search-wrap">
+        <label for="byregion-search" class="sr-only" data-i18n="filter.searchregion">Search region</label>
+        <input type="search" id="byregion-search" placeholder="Search DXCC…" data-i18n-placeholder="filter.searchregion" autocomplete="off">
+      </div>
+    </div>
+    <div id="byregion-placeholder" class="list-placeholder" data-i18n="byregion.placeholder">Tap a country on the map, or search above</div>
+    <div id="byregion-content" hidden></div>
+  </section>
+
+  <!-- Screen: Opening Soon -->
+  <section id="screen-opening" class="screen" hidden aria-label="Opening soon predictions">
+    <div id="opening-controls">
+      <div id="opening-horizon" role="group" aria-label="Time horizon">
+        <button class="horizon-btn active" data-hours="1" data-i18n="opening.1h">1h</button>
+        <button class="horizon-btn" data-hours="2" data-i18n="opening.2h">2h</button>
+        <button class="horizon-btn" data-hours="3" data-i18n="opening.3h">3h</button>
+      </div>
+      <select id="opening-band-filter" aria-label="Filter by band">
+        <option value="" data-i18n="filter.allbands">All bands</option>
+      </select>
+      <select id="opening-continent-filter" aria-label="Filter by continent">
+        <option value="" data-i18n="filter.allcontinents">All continents</option>
+        <option value="AF">Africa</option>
+        <option value="AS">Asia</option>
+        <option value="EU">Europe</option>
+        <option value="NA">North America</option>
+        <option value="OC">Oceania</option>
+        <option value="SA">South America</option>
+      </select>
+    </div>
+    <div id="opening-list" role="list" aria-label="Opening soon list"></div>
+  </section>
+
+  <!-- Screen: Settings -->
+  <section id="screen-setup" class="screen" hidden aria-label="Settings" data-i18n-aria="nav.settings">
+    <div id="settings-content">
+      <!-- Rendered by settings.js -->
+    </div>
+  </section>
+
+  <!-- Drill-down panel (slides up over map) -->
+  <div id="drilldown-panel" role="dialog" aria-modal="true" aria-label="Region details" hidden>
+    <div id="drilldown-handle" aria-hidden="true"></div>
+    <div id="drilldown-header">
+      <div id="drilldown-title-wrap">
+        <h2 id="drilldown-title"></h2>
+        <span id="drilldown-prefix" class="prefix-badge"></span>
+      </div>
+      <div id="drilldown-meta"></div>
+      <div id="drilldown-path-toggle">
+        <button class="path-btn active" data-path="short" data-i18n="drilldown.shortpath">Short</button>
+        <button class="path-btn" data-path="long" data-i18n="drilldown.longpath">Long</button>
+      </div>
+      <button id="drilldown-close" class="icon-btn" aria-label="Close panel" data-i18n-aria="drilldown.close">✕</button>
+    </div>
+    <div id="drilldown-body">
+      <div id="drilldown-scores"></div>
+      <div id="drilldown-radio-settings"></div>
+      <div id="drilldown-bandplan"></div>
+      <div id="drilldown-actions"></div>
+    </div>
+  </div>
+
+
+  <!-- Global loading overlay (shown during cache build) -->
+  <div id="loading-overlay" class="loading-overlay" aria-live="polite" aria-label="Loading">
+    <div class="loading-content">
+      <div class="loading-logo">📡</div>
+      <div class="loading-label">Loading…</div>
+      <div class="loading-progress-track">
+        <div class="loading-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- JS: libs as classic scripts (not ES modules), app as ES modules -->
+  <script src="lib/leaflet/leaflet.js"></script>
+  <script src="lib/suncalc.js"></script>
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+/* =============================================================
+   HF Band Scout — Map Styles
+   Leaflet container, terminator canvas, legend, loading overlay
+   ============================================================= */
+
+/* ── Map container ── */
+#map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#leaflet-map {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ── Leaflet override: dark tile filter ── */
+[data-theme="dark"] .leaflet-tile {
+  filter: brightness(0.65) saturate(0.4) hue-rotate(180deg) invert(1);
+}
+
+/* ── Terminator canvas ── */
+#terminator-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Legend ── */
+#map-legend {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-3);
+  z-index: 10;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  min-width: 80px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.legend-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── Loading overlay ── */
+#map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  background: var(--bg-overlay);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity var(--transition-base);
+}
+
+#map-loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Leaflet popup / tooltip override ── */
+.leaflet-popup-content-wrapper {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-elevated);
+}
+
+.leaflet-popup-close-button {
+  color: var(--text-muted) !important;
+  font-size: 18px !important;
+  padding: var(--space-2) !important;
+}
+
+/* ── Propagation tooltip (on hover) ── */
+.prop-tooltip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Attribution ── */
+.leaflet-control-attribution {
+  background: var(--bg-overlay) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-muted) !important;
+}
+
+/* ── Zoom controls ── */
+.leaflet-control-zoom a {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: var(--border-default) !important;
+}
+
+/* ── Greyline highlight animation ── */
+@keyframes greyline-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.greyline-active {
+  animation: greyline-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Global loading overlay (cache build) ─────────────────────────────────── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 400ms ease;
+}
+.loading-overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.loading-logo {
+  font-size: 3rem;
+  animation: pulse-logo 1.8s ease-in-out infinite;
+}
+@keyframes pulse-logo {
+  0%, 100% { opacity: 1; transform: scale(1);    }
+  50%       { opacity: 0.6; transform: scale(0.92); }
+}
+.loading-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  min-height: 1.2em;
+  text-align: center;
+}
+.loading-progress-track {
+  width: 200px;
+  height: 3px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.loading-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  transition: width 200ms ease;
+}

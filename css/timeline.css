@@ -1,0 +1,143 @@
+/* =============================================================
+   HF Band Scout — Timeline / Time Scrubber Styles
+   ============================================================= */
+
+#timeline-bar {
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  height: var(--timeline-h);
+}
+
+/* ── Now button ── */
+#btn-now {
+  flex-shrink: 0;
+  height: 34px;
+  min-width: 48px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+#btn-now.live {
+  background: rgba(0, 200, 150, 0.12);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+#btn-now:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+/* ── Slider wrap ── */
+.tl-slider-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ── Range slider ── */
+#time-slider {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-default);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 2px solid var(--bg-secondary);
+  box-shadow: 0 0 0 1px var(--accent-primary);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+#time-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+#time-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 2px solid var(--bg-secondary);
+  cursor: pointer;
+}
+
+/* Track fill (achieved via CSS gradient set by JS) */
+#time-slider.has-fill {
+  background: linear-gradient(
+    to right,
+    var(--accent-primary) 0%,
+    var(--accent-primary) var(--fill-pct, 0%),
+    var(--border-default) var(--fill-pct, 0%),
+    var(--border-default) 100%
+  );
+}
+
+/* ── Time display ── */
+.tl-time {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  min-width: 68px;
+}
+
+.tl-time.offset {
+  color: var(--accent-warning);
+}
+
+/* ── Play/Pause button ── */
+#btn-play {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: #fff;
+  font-size: 13px;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+#btn-play:hover {
+  background: var(--score-excellent);
+  transform: scale(1.05);
+}
+
+#btn-play[aria-pressed="true"] {
+  background: var(--score-moderate);
+}
+
+#btn-play[aria-pressed="true"] .play-icon::before {
+  content: '⏸';
+}
+
+#btn-play[aria-pressed="false"] .play-icon::before {
+  content: '▶';
+}
+
+.play-icon { font-size: 13px; }
+.play-icon::before { content: '▶'; }

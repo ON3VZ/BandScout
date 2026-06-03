@@ -1,0 +1,214 @@
+/* =============================================================
+   HF Band Scout — List View Styles
+   By Band → Region and By Region → Band screens
+   ============================================================= */
+
+/* ── Band selector in list screen ── */
+#byband-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+#byband-band-selector {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+}
+
+#byband-band-selector::-webkit-scrollbar { display: none; }
+
+#byband-continent {
+  min-height: 32px;
+  min-width: 140px;
+  font-size: var(--font-size-sm);
+}
+
+/* ── List rows ── */
+.region-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  min-height: 56px;
+}
+
+.region-row:hover {
+  background: var(--bg-elevated);
+}
+
+.region-row:active {
+  background: var(--border-default);
+}
+
+.region-flag {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.region-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.region-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.region-sub {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  display: flex;
+  gap: var(--space-3);
+  margin-top: 2px;
+}
+
+.region-prefix {
+  font-family: var(--font-mono);
+  color: var(--accent-primary);
+}
+
+.region-score-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.region-score-num {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  min-width: 40px;
+  text-align: right;
+}
+
+.region-score-bar {
+  width: 80px;
+  height: 4px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.region-score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+.region-mode-tag {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ── Continent group header ── */
+.continent-header {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* ── By-Region detail panel ── */
+#byregion-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.byregion-entity-header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.byregion-entity-name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.byregion-band-list {
+  padding: var(--space-2) var(--space-4);
+}
+
+.byregion-band-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.byregion-band-row:last-child { border-bottom: none; }
+
+.byregion-band-name {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  min-width: 44px;
+  color: var(--text-primary);
+}
+
+.byregion-score {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Mini 24h bar */
+.mini-24h {
+  flex: 1;
+  height: 28px;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.mini-bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 1px 1px 0 0;
+  transition: height var(--transition-map);
+}
+
+.byregion-best-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ── Empty state ── */
+.no-results {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}

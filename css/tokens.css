@@ -1,0 +1,113 @@
+/* =============================================================
+   HF Band Scout — Design Tokens
+   All colours, spacing, typography as CSS custom properties.
+   Never use raw values outside this file.
+   ============================================================= */
+
+:root {
+  /* ── Backgrounds ── */
+  --bg-primary:    #1A1F2E;
+  --bg-secondary:  #222736;
+  --bg-elevated:   #2A3044;
+  --bg-overlay:    rgba(26, 31, 46, 0.92);
+
+  /* ── Text ── */
+  --text-primary:   #E8EAF0;
+  --text-secondary: #8A8FA8;
+  --text-muted:     #555C78;
+  --text-inverse:   #1A1F2E;
+
+  /* ── Score colours (default — red/green) ── */
+  --score-excellent: #00C896;
+  --score-good:      #1D9E75;
+  --score-moderate:  #EF9F27;
+  --score-poor:      #E24B4A;
+  --score-marginal:  #6B1A1A;
+  --score-closed:    #2A2A2A;
+
+  /* ── Accent colours ── */
+  --accent-greyline: #BA7517;
+  --accent-es:       #7F77DD;
+  --accent-primary:  #1D9E75;
+  --accent-danger:   #E24B4A;
+  --accent-warning:  #EF9F27;
+  --accent-info:     #4A90D9;
+
+  /* ── Borders ── */
+  --border-default: #313754;
+  --border-subtle:  #252B3D;
+  --border-focus:   #1D9E75;
+
+  /* ── Typography ── */
+  --font-mono: 'Courier New', 'Courier', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs:   11px;
+  --font-size-sm:   12px;
+  --font-size-base: 14px;
+  --font-size-md:   15px;
+  --font-size-lg:   16px;
+  --font-size-xl:   18px;
+  --font-size-2xl:  22px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold:   600;
+  --line-height-tight:  1.25;
+  --line-height-base:   1.5;
+
+  /* ── Spacing scale ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ── Border radius ── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-pill: 999px;
+
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.6);
+  --shadow-panel: 0 -4px 20px rgba(0,0,0,0.5);
+
+  /* ── Transitions ── */
+  --transition-fast:  120ms ease;
+  --transition-base:  200ms ease;
+  --transition-map:   200ms ease;
+  --transition-panel: 300ms cubic-bezier(0.32, 0, 0.15, 1);
+
+  /* ── Topbar height (used for layout offsets) ── */
+  --topbar-h:  48px;
+  --nav-h:     44px;
+  --timeline-h: 58px;
+  --conditions-h: 40px;
+}
+
+/* ── Light theme override ── */
+[data-theme="light"] {
+  --bg-primary:    #F4F6FA;
+  --bg-secondary:  #FFFFFF;
+  --bg-elevated:   #E8EBF2;
+  --bg-overlay:    rgba(244, 246, 250, 0.92);
+  --text-primary:  #1A1F2E;
+  --text-secondary:#555C78;
+  --text-muted:    #8A8FA8;
+  --border-default: #C5C9D8;
+  --border-subtle:  #DDE0EA;
+}
+
+/* ── Colour-blind mode: replaces red-green with blue-amber ── */
+[data-colorblind="true"] {
+  --score-excellent: #0077BB;
+  --score-good:      #4499CC;
+  --score-moderate:  #EE7733;
+  --score-poor:      #CC3311;
+  --score-marginal:  #551A00;
+}

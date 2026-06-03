@@ -1,0 +1,121 @@
+/* =============================================================
+   HF Band Scout — Opening Soon Screen Styles
+   ============================================================= */
+
+#opening-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+#opening-horizon {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+}
+
+#opening-band-filter,
+#opening-continent-filter {
+  min-height: 32px;
+  min-width: 110px;
+  font-size: var(--font-size-sm);
+}
+
+/* ── Opening row ── */
+.opening-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  min-height: 60px;
+}
+
+.opening-row:hover { background: var(--bg-elevated); }
+
+.opening-band-tag {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  min-width: 40px;
+  text-align: center;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.opening-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.opening-entity {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opening-detail {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.opening-time-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.opening-countdown {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--accent-warning);
+}
+
+.opening-peak {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.opening-arrow {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.opening-arrow .from { color: var(--score-poor); }
+.opening-arrow .to   { color: var(--accent-primary); }
+
+/* ── Empty state ── */
+.opening-empty {
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.opening-empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: var(--space-3);
+}
+
+.opening-empty-text {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
