@@ -217,6 +217,7 @@ function initNav() {
 }
 
 export function switchScreen(name) {
+  window.hfbsSwitchScreen = switchScreen; // beschikbaar voor settings.js
   // Verberg alle schermen
   document.querySelectorAll(`[id^="${SCREEN_PREFIX}"]`).forEach(el => {
     el.classList.remove('is-active');

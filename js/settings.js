@@ -1,65 +1,80 @@
 /**
- * settings.js — Setup/Settings scherm
+ * settings.js - Setup/Settings scherm
+ * GEEN import van app.js (vermijdt circulaire import)
+ * switchScreen via window.hfbsSwitchScreen (gezet door app.js)
  */
 
-import { state, ALL_BANDS, BAND_ACCESS, POWER_LIMITS } from './state.js';
+import { state } from './state.js';
 import { t, SUPPORTED_LANGS, load as loadLang, applyToDOM } from './i18n.js';
 import { showToast } from './utils.js';
 import { testEndpoint } from './noaa.js';
-import { initAll as initTooltips } from './tooltip.js';
-import { switchScreen } from './app.js';
 
 export const SETTINGS_KEY = 'hfbs_settings';
 
 export const DEFAULTS = {
-  callsign: '', grid: '', licenceClass: 'general',
-  radioModel: 'icom-7300', powerW: 100, mode: 'ssb',
+  callsign: '', grid: '', licenceClass: 'novice_be',
+  radioModel: 'icom-7300', powerW: 25, mode: 'ssb',
   antennaGain: 0, theme: 'dark', colorblind: false, language: 'en',
 };
 
+// Licentie klassen incl. Belgische Klasse C
 const LICENCE_CLASSES = [
-  { id: 'novice',     label: 'Novice / Foundation' },
-  { id: 'technician', label: 'Technician (US/CEPT)' },
-  { id: 'general',    label: 'General / Intermediate' },
-  { id: 'extra',      label: 'Extra / Advanced' },
-  { id: 'full',       label: 'Full / HAREC' },
+  { id: 'novice_be', label: 'Klasse C — Belgisch/CEPT Novice (25W)', maxW: 25,
+    bands: ['80m','40m','30m','20m','15m','10m','2m','70cm'],
+    note: 'Belgisch BIPT Klasse C: 80/40/30/20/15/10m HF + 2m/70cm VHF/UHF · Max 25 W EIRP' },
+  { id: 'novice',    label: 'Novice / Foundation (overige landen)', maxW: 50,
+    bands: ['80m','40m','30m','20m','15m','10m','2m','70cm'],
+    note: '' },
+  { id: 'technician',label: 'Technician (US/CEPT)', maxW: 100,
+    bands: ['80m','40m','30m','20m','15m','10m','6m','2m','70cm'],
+    note: '' },
+  { id: 'general',   label: 'General / Intermediate (B-licentie)', maxW: 100,
+    bands: ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
+    note: '' },
+  { id: 'extra',     label: 'Extra / Advanced', maxW: 400,
+    bands: ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','2m','70cm','23cm'],
+    note: '' },
+  { id: 'full',      label: 'Full / HAREC (A-licentie)', maxW: 1500,
+    bands: ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','2m','70cm','23cm'],
+    note: '' },
 ];
 
+export function getLicenceClass(id) {
+  return LICENCE_CLASSES.find(l => l.id === id) ?? LICENCE_CLASSES[0];
+}
+
 const RADIO_MODELS = [
-  { group: 'Icom',     models: [
-    { id: 'icom-7300',  name: 'Icom IC-7300' },
-    { id: 'icom-7610',  name: 'Icom IC-7610' },
-    { id: 'icom-705',   name: 'Icom IC-705' },
+  { group: 'Icom', models: [
+    { id: 'icom-7300', name: 'Icom IC-7300' }, { id: 'icom-7610', name: 'Icom IC-7610' },
+    { id: 'icom-705',  name: 'Icom IC-705'  }, { id: 'icom-7100', name: 'Icom IC-7100'  },
   ]},
-  { group: 'Yaesu',    models: [
+  { group: 'Yaesu', models: [
     { id: 'yaesu-ft-991a', name: 'Yaesu FT-991A' },
-    { id: 'yaesu-ft-891',  name: 'Yaesu FT-891' },
-    { id: 'yaesu-ft-710',  name: 'Yaesu FT-710' },
+    { id: 'yaesu-ft-891',  name: 'Yaesu FT-891'  },
+    { id: 'yaesu-ft-710',  name: 'Yaesu FT-710'  },
   ]},
-  { group: 'Kenwood',  models: [
-    { id: 'kenwood-ts-890s',  name: 'Kenwood TS-890S' },
+  { group: 'Kenwood', models: [
+    { id: 'kenwood-ts-890s',  name: 'Kenwood TS-890S'  },
     { id: 'kenwood-ts-590sg', name: 'Kenwood TS-590SG' },
   ]},
   { group: 'Elecraft', models: [
-    { id: 'elecraft-k4',  name: 'Elecraft K4' },
+    { id: 'elecraft-k4',  name: 'Elecraft K4'  },
     { id: 'elecraft-k3s', name: 'Elecraft K3S' },
     { id: 'elecraft-kx3', name: 'Elecraft KX3' },
   ]},
-  { group: 'Xiegu',    models: [
-    { id: 'xiegu-g90',   name: 'Xiegu G90' },
+  { group: 'Xiegu', models: [
+    { id: 'xiegu-g90',   name: 'Xiegu G90'   },
     { id: 'xiegu-x6100', name: 'Xiegu X6100' },
   ]},
-  { group: 'SDR',      models: [
+  { group: 'SDR / Other', models: [
     { id: 'sdr-rtlsdr', name: 'RTL-SDR (RX only)' },
-  ]},
-  { group: 'Other',    models: [
-    { id: 'generic', name: 'Generic / Not listed' },
+    { id: 'generic',    name: 'Generic / Not listed' },
   ]},
 ];
 
 const MODES = ['SSB','CW','FT8','FT4','JT65','AM','MSK144'];
 
-// ── Load / Save ──────────────────────────────────────────────────────────────
+// ─── Load / Save ─────────────────────────────────────────────────────────────
 export function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
@@ -78,9 +93,7 @@ export function saveSettings(data) {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
     applyToState(data);
     showToast(t('settings.saved'), 'success');
-    // Terug naar kaart
-    switchScreen('map');
-    // Herbereken propagatie als grid veranderd
+    goBack();
     window.dispatchEvent(new CustomEvent('hfbs:settings-changed', { detail: data }));
   } catch (e) {
     console.error('[settings] save failed', e);
@@ -88,65 +101,77 @@ export function saveSettings(data) {
   }
 }
 
+function goBack() {
+  if (typeof window.hfbsSwitchScreen === 'function') {
+    window.hfbsSwitchScreen('map');
+  }
+}
+
 function applyToState(d) {
-  state.user.callsign    = d.callsign    ?? '';
-  state.user.grid        = d.grid        ?? '';
-  state.user.licenceClass= d.licenceClass?? 'general';
-  state.user.radioModel  = d.radioModel  ?? 'icom-7300';
-  state.user.powerW      = Number(d.powerW ?? 100);
-  state.user.mode        = d.mode        ?? 'ssb';
-  state.user.antennaGain = Number(d.antennaGain ?? 0);
-  state.user.theme       = d.theme       ?? 'dark';
-  state.user.colorblind  = Boolean(d.colorblind);
-  state.user.language    = d.language    ?? 'en';
+  state.user.callsign     = d.callsign     ?? '';
+  state.user.grid         = d.grid         ?? '';
+  state.user.licenceClass = d.licenceClass ?? 'novice_be';
+  state.user.radioModel   = d.radioModel   ?? 'icom-7300';
+  state.user.powerW       = Number(d.powerW ?? 25);
+  state.user.mode         = d.mode         ?? 'ssb';
+  state.user.antennaGain  = Number(d.antennaGain ?? 0);
+  state.user.theme        = d.theme        ?? 'dark';
+  state.user.colorblind   = Boolean(d.colorblind);
+  state.user.language     = d.language     ?? 'en';
   applyTheme(d.theme ?? 'dark');
   applyColorblind(Boolean(d.colorblind));
 }
 
 export function applyTheme(pref) {
-  const resolved = pref === 'system'
+  const r = pref === 'system'
     ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : pref;
-  document.documentElement.setAttribute('data-theme', resolved);
+    : (pref || 'dark');
+  document.documentElement.setAttribute('data-theme', r);
 }
 
 export function applyColorblind(on) {
   document.documentElement.setAttribute('data-colorblind', on ? 'true' : 'false');
 }
 
-// ── Render ───────────────────────────────────────────────────────────────────
+// ─── Render ───────────────────────────────────────────────────────────────────
 export function renderSettings() {
   const screen = document.getElementById('screen-setup');
   if (!screen) return;
-  const s = loadSettings();
+  const s  = loadSettings();
+  const lc = getLicenceClass(s.licenceClass);
 
-  screen.innerHTML = `
-<div class="settings-page">
+  screen.innerHTML = buildHTML(s, lc);
+  bindEvents(s, lc);
+  runApiHealth();
+}
 
-  <!-- Titel + Sluiten -->
+function buildHTML(s, lc) {
+  return `<div class="settings-page">
+
   <div class="settings-toprow">
     <h1 class="settings-title">${t('settings.title')}</h1>
-    <button class="settings-close-btn" id="settings-close" aria-label="Sluiten">✕</button>
+    <button class="settings-close-btn" id="s-close">✕</button>
   </div>
 
-  <!-- STATION -->
   <section class="settings-section">
     <h2 class="settings-section-title">${t('settings.station')}</h2>
 
     <div class="settings-field">
       <label class="settings-label" for="s-callsign">${t('settings.callsign')}</label>
       <input id="s-callsign" class="settings-input" type="text"
-        placeholder="e.g. ON3VZ" maxlength="12"
-        value="${esc(s.callsign)}" autocapitalize="characters" autocomplete="off"/>
+        placeholder="e.g. G3XYZ" maxlength="12" value="${esc(s.callsign)}"
+        autocapitalize="characters" autocomplete="off"/>
       <span class="settings-hint">${t('settings.callsign.help')}</span>
     </div>
 
     <div class="settings-field">
-      <label class="settings-label" for="s-grid">${t('settings.grid')} <span class="settings-required">*</span></label>
+      <label class="settings-label" for="s-grid">
+        ${t('settings.grid')} <span class="settings-required">*</span>
+      </label>
       <div class="settings-input-row">
         <input id="s-grid" class="settings-input" type="text"
-          placeholder="e.g. JO20ev" maxlength="6"
-          value="${esc(s.grid)}" autocapitalize="characters" autocomplete="off"/>
+          placeholder="e.g. JO20ev" maxlength="6" value="${esc(s.grid)}"
+          autocapitalize="characters" autocomplete="off"/>
         <span id="s-grid-ok" class="settings-valid-icon"></span>
       </div>
       <span class="settings-hint">${t('settings.grid.help')}</span>
@@ -155,15 +180,14 @@ export function renderSettings() {
     <div class="settings-field">
       <label class="settings-label" for="s-licence">${t('settings.license')}</label>
       <select id="s-licence" class="settings-select">
-        ${LICENCE_CLASSES.map(lc =>
-          `<option value="${lc.id}" ${s.licenceClass === lc.id ? 'selected' : ''}>${lc.label}</option>`
+        ${LICENCE_CLASSES.map(lc2 =>
+          `<option value="${lc2.id}" ${s.licenceClass === lc2.id ? 'selected' : ''}>${lc2.label}</option>`
         ).join('')}
       </select>
-      <span class="settings-hint">${t('settings.license.help')}</span>
+      ${lc.note ? `<div id="s-licence-note" class="settings-hint settings-licence-note">ℹ ${lc.note}</div>` : `<div id="s-licence-note" class="settings-hint settings-licence-note"></div>`}
     </div>
   </section>
 
-  <!-- TRANSCEIVER -->
   <section class="settings-section">
     <h2 class="settings-section-title">${t('settings.radio')}</h2>
 
@@ -185,17 +209,16 @@ export function renderSettings() {
           `<option value="${m.toLowerCase()}" ${s.mode === m.toLowerCase() ? 'selected' : ''}>${m}</option>`
         ).join('')}
       </select>
-      <span class="settings-hint">${t('settings.mode.help')}</span>
     </div>
 
     <div class="settings-field">
       <label class="settings-label" for="s-power">
         ${t('settings.power')}
-        <span class="settings-value-badge" id="s-power-val">${fmtPower(s.powerW)}</span>
+        <span class="settings-value-badge" id="s-power-val">${fmtPower(Math.min(s.powerW, lc.maxW))}</span>
       </label>
-      <input id="s-power" class="settings-range" type="range" min="1" max="1500" step="1" value="${s.powerW}"/>
-      <div class="settings-range-marks"><span>1 W</span><span>100 W</span><span>500 W</span><span>1.5 kW</span></div>
-      <span class="settings-hint">${t('settings.power.help')}</span>
+      <input id="s-power" class="settings-range" type="range"
+        min="1" max="${lc.maxW}" step="1" value="${Math.min(s.powerW, lc.maxW)}"/>
+      <div class="settings-range-marks" id="s-power-marks">${buildPowerMarks(lc.maxW)}</div>
     </div>
 
     <div class="settings-field">
@@ -203,12 +226,14 @@ export function renderSettings() {
         ${t('settings.antenna_gain')}
         <span class="settings-value-badge" id="s-gain-val">${s.antennaGain} dBd</span>
       </label>
-      <input id="s-gain" class="settings-range" type="range" min="-10" max="20" step="0.5" value="${s.antennaGain}"/>
-      <div class="settings-range-marks"><span>−10 dBd</span><span>0 dBd</span><span>+10 dBd</span><span>+20 dBd</span></div>
+      <input id="s-gain" class="settings-range" type="range"
+        min="-10" max="20" step="0.5" value="${s.antennaGain}"/>
+      <div class="settings-range-marks">
+        <span>−10 dBd</span><span>0 dBd</span><span>+10 dBd</span><span>+20 dBd</span>
+      </div>
     </div>
   </section>
 
-  <!-- UITERLIJK -->
   <section class="settings-section">
     <h2 class="settings-section-title">${t('settings.appearance')}</h2>
 
@@ -224,10 +249,12 @@ export function renderSettings() {
     </div>
 
     <div class="settings-field settings-field--inline">
-      <label class="settings-label" for="s-colorblind">${t('settings.colorblind')}</label>
-      <button id="s-colorblind" role="switch" class="toggle-switch ${s.colorblind ? 'is-on' : ''}"
-        aria-checked="${s.colorblind}"><span class="toggle-thumb"></span></button>
-      <span class="settings-hint">${t('settings.colorblind.help')}</span>
+      <label class="settings-label">${t('settings.colorblind')}</label>
+      <button id="s-colorblind" role="switch"
+        class="toggle-switch ${s.colorblind ? 'is-on' : ''}"
+        aria-checked="${s.colorblind}">
+        <span class="toggle-thumb"></span>
+      </button>
     </div>
 
     <div class="settings-field">
@@ -240,13 +267,11 @@ export function renderSettings() {
     </div>
   </section>
 
-  <!-- OPSLAAN -->
   <div class="settings-save-row">
-    <button class="btn-primary settings-save-btn" id="s-save">${t('settings.save')}</button>
-    <button class="btn-secondary settings-cancel-btn" id="s-cancel">← ${t('nav.map')}</button>
+    <button class="settings-save-btn" id="s-save">${t('settings.save')}</button>
+    <button class="settings-cancel-btn" id="s-cancel">← ${t('nav.map')}</button>
   </div>
 
-  <!-- PROPAGATIEGLOSSARIUM -->
   <section class="settings-section settings-section--glossary">
     <h2 class="settings-section-title">${t('help.section_title')}</h2>
     ${['muf','sfi','kp','greyline','dlayer','hops','score','qrp','es'].map(k => `
@@ -256,7 +281,6 @@ export function renderSettings() {
       </div>`).join('')}
   </section>
 
-  <!-- API STATUS -->
   <section class="settings-section">
     <h2 class="settings-section-title">${t('settings.apihealth')}</h2>
     <table class="api-table">
@@ -269,53 +293,77 @@ export function renderSettings() {
         <tr><td colspan="3" class="api-testing">${t('settings.api_testing')}</td></tr>
       </tbody>
     </table>
-    <button class="btn-secondary" id="s-api-retest" style="margin-top:.5rem">${t('settings.api_retest')}</button>
+    <button class="btn-secondary" id="s-api-retest" style="margin-top:.75rem">
+      ${t('settings.api_retest')}
+    </button>
   </section>
 
 </div>`;
-
-  bindEvents(s);
-  runApiHealth();
 }
 
-// ── Events ────────────────────────────────────────────────────────────────────
-function bindEvents(initial) {
-  // Sluiten / terug
-  document.getElementById('settings-close')?.addEventListener('click', () => switchScreen('map'));
-  document.getElementById('s-cancel')?.addEventListener('click',       () => switchScreen('map'));
+function buildPowerMarks(maxW) {
+  if (maxW <= 25)   return '<span>1 W</span><span>10 W</span><span>25 W</span>';
+  if (maxW <= 100)  return '<span>1 W</span><span>50 W</span><span>100 W</span>';
+  if (maxW <= 400)  return '<span>1 W</span><span>100 W</span><span>400 W</span>';
+  return '<span>1 W</span><span>100 W</span><span>500 W</span><span>1.5 kW</span>';
+}
 
-  // Callsign: autocaps
+// ─── Events ───────────────────────────────────────────────────────────────────
+function bindEvents(initial, initialLc) {
+  document.getElementById('s-close')?.addEventListener('click', goBack);
+  document.getElementById('s-cancel')?.addEventListener('click', goBack);
+
   document.getElementById('s-callsign')?.addEventListener('input', e => {
     e.target.value = e.target.value.toUpperCase();
   });
 
-  // Grid: validatie
   const gridInp = document.getElementById('s-grid');
   const gridOk  = document.getElementById('s-grid-ok');
-  gridInp?.addEventListener('input', () => {
-    const v = gridInp.value.trim().toUpperCase();
-    gridInp.value = v;
-    if (!v) { gridOk.textContent = ''; return; }
-    const ok = /^[A-R]{2}[0-9]{2}([A-X]{2})?$/.test(v);
-    gridOk.textContent = ok ? '✓' : '✗';
-    gridOk.className = 'settings-valid-icon ' + (ok ? 'valid-ok' : 'valid-err');
-  });
+  if (gridInp) {
+    if (gridInp.value) {
+      const ok = /^[A-R]{2}[0-9]{2}([A-X]{2})?$/i.test(gridInp.value);
+      gridOk.textContent = ok ? '✓' : '✗';
+      gridOk.className = 'settings-valid-icon ' + (ok ? 'valid-ok' : 'valid-err');
+    }
+    gridInp.addEventListener('input', () => {
+      const v = gridInp.value.trim().toUpperCase();
+      gridInp.value = v;
+      if (!v) { gridOk.textContent = ''; return; }
+      const ok = /^[A-R]{2}[0-9]{2}([A-X]{2})?$/.test(v);
+      gridOk.textContent = ok ? '✓' : '✗';
+      gridOk.className = 'settings-valid-icon ' + (ok ? 'valid-ok' : 'valid-err');
+    });
+  }
 
-  // Power slider
+  const licSel    = document.getElementById('s-licence');
   const pwrSlider = document.getElementById('s-power');
   const pwrVal    = document.getElementById('s-power-val');
-  pwrSlider?.addEventListener('input', () => {
-    pwrVal.textContent = fmtPower(Number(pwrSlider.value));
+  const pwrMarks  = document.getElementById('s-power-marks');
+  const lcNote    = document.getElementById('s-licence-note');
+
+  licSel?.addEventListener('change', () => {
+    const lc = getLicenceClass(licSel.value);
+    if (pwrSlider) {
+      pwrSlider.max = String(lc.maxW);
+      if (Number(pwrSlider.value) > lc.maxW) {
+        pwrSlider.value = String(lc.maxW);
+        if (pwrVal) pwrVal.textContent = fmtPower(lc.maxW);
+      }
+    }
+    if (pwrMarks) pwrMarks.innerHTML = buildPowerMarks(lc.maxW);
+    if (lcNote) lcNote.textContent = lc.note ? 'ℹ ' + lc.note : '';
   });
 
-  // Gain slider
+  pwrSlider?.addEventListener('input', () => {
+    if (pwrVal) pwrVal.textContent = fmtPower(Number(pwrSlider.value));
+  });
+
   const gainSlider = document.getElementById('s-gain');
   const gainVal    = document.getElementById('s-gain-val');
   gainSlider?.addEventListener('input', () => {
-    gainVal.textContent = `${gainSlider.value} dBd`;
+    if (gainVal) gainVal.textContent = `${gainSlider.value} dBd`;
   });
 
-  // Colorblind toggle
   const togCB = document.getElementById('s-colorblind');
   togCB?.addEventListener('click', () => {
     const on = togCB.getAttribute('aria-checked') !== 'true';
@@ -324,42 +372,41 @@ function bindEvents(initial) {
     applyColorblind(on);
   });
 
-  // Thema: directe preview
   document.querySelectorAll('input[name="s-theme"]').forEach(r => {
     r.addEventListener('change', () => { if (r.checked) applyTheme(r.value); });
   });
 
-  // Taal: directe toepassing
   document.getElementById('s-lang')?.addEventListener('change', async e => {
     await loadLang(e.target.value);
     applyToDOM();
     renderSettings();
   });
 
-  // Save
   document.getElementById('s-save')?.addEventListener('click', () => {
     const data = collectForm();
     if (!validate(data)) return;
     saveSettings(data);
   });
 
-  // API hertest
   document.getElementById('s-api-retest')?.addEventListener('click', runApiHealth);
 }
 
 function collectForm() {
   const theme = document.querySelector('input[name="s-theme"]:checked')?.value ?? 'dark';
+  const licId = document.getElementById('s-licence')?.value ?? 'novice_be';
+  const lc    = getLicenceClass(licId);
+  const rawPwr = Number(document.getElementById('s-power')?.value ?? 25);
   return {
-    callsign:    (document.getElementById('s-callsign')?.value ?? '').trim().toUpperCase(),
-    grid:        (document.getElementById('s-grid')?.value ?? '').trim().toUpperCase(),
-    licenceClass:document.getElementById('s-licence')?.value ?? 'general',
-    radioModel:  document.getElementById('s-radio')?.value   ?? 'icom-7300',
-    mode:        document.getElementById('s-mode')?.value    ?? 'ssb',
-    powerW:      Number(document.getElementById('s-power')?.value ?? 100),
-    antennaGain: Number(document.getElementById('s-gain')?.value  ?? 0),
+    callsign:     (document.getElementById('s-callsign')?.value ?? '').trim().toUpperCase(),
+    grid:         (document.getElementById('s-grid')?.value ?? '').trim().toUpperCase(),
+    licenceClass: licId,
+    radioModel:   document.getElementById('s-radio')?.value   ?? 'icom-7300',
+    mode:         document.getElementById('s-mode')?.value    ?? 'ssb',
+    powerW:       Math.min(rawPwr, lc.maxW),
+    antennaGain:  Number(document.getElementById('s-gain')?.value ?? 0),
     theme,
-    colorblind:  document.getElementById('s-colorblind')?.getAttribute('aria-checked') === 'true',
-    language:    document.getElementById('s-lang')?.value ?? 'en',
+    colorblind:   document.getElementById('s-colorblind')?.getAttribute('aria-checked') === 'true',
+    language:     document.getElementById('s-lang')?.value ?? 'en',
   };
 }
 
@@ -377,7 +424,7 @@ function validate(data) {
   return true;
 }
 
-// ── API health ────────────────────────────────────────────────────────────────
+// ─── API health ───────────────────────────────────────────────────────────────
 const ENDPOINTS = [
   { id: 'sfi',      label: 'api.sfi',      url: 'https://services.swpc.noaa.gov/json/f107_cm_flux.json' },
   { id: 'kp',       label: 'api.kp',       url: 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json' },
@@ -404,7 +451,6 @@ async function runApiHealth() {
       row.cells[2].textContent = `${ms} ms`;
     } catch {
       row.cells[1].innerHTML = `<span class="api-badge api-err">✗ Error</span>`;
-      row.cells[2].textContent = '—';
     }
   }
 }

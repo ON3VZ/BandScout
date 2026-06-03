@@ -89,6 +89,15 @@ export const BAND_FREQ_MHZ = {
 
 // Band access by licence class
 export const BAND_ACCESS = {
+  // Belgisch/CEPT Klasse C (Novice) — enkel deze banden, max 25W
+  'novice_be':  ['80m','40m','30m','20m','15m','10m','2m','70cm'],
+  // Andere novice/foundation licenties
+  'novice':     ['80m','40m','30m','20m','15m','10m','2m','70cm'],
+  'technician': ['80m','40m','30m','20m','15m','10m','6m','2m','70cm'],
+  'general':    ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
+  'extra':      ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','2m','70cm','23cm'],
+  'full':       ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','2m','70cm','23cm'],
+  // Legacy
   'A': ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
   'B': ['80m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
   'C': ['80m','40m','30m','20m','15m','10m','2m','70cm'],
@@ -105,7 +114,7 @@ export const POWER_MINS     = { 'C': 1,    'B': 1,    'A': 1    };
  * @returns {string[]}
  */
 export function getActiveBands(licenseClass) {
-  const lc = licenseClass ?? state.user.licenseClass;
+  const lc = licenseClass ?? state.user.licenceClass ?? state.user.licenseClass;
   return (BAND_ACCESS[lc] ?? BAND_ACCESS['A']).filter(b => ALL_BANDS.includes(b));
 }
 
