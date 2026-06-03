@@ -246,6 +246,17 @@ export function renderTerminator(timeStep) {
   }
 }
 
+// ─── Greyline helper ──────────────────────────────────────────────────────────
+function isGreylineFeature(feature) {
+  if (!feature?.properties) return false;
+  const { lat, lon } = feature.properties;
+  if (lat == null || lon == null) return false;
+  const date = new Date(Date.now() + state.activeTimeOffset * 30 * 60 * 1000);
+  return isInGreyline(date, lat, lon);
+}
+
+
+
 
 
 export function renderBandSelector() {
