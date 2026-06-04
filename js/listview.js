@@ -1,6 +1,7 @@
 /**
  * listview.js — By Band + By Region
- * Inklapbare continent-groepen, score bars, klikbare rijen.
+ * Inklapbare continent-groepen met een responsief TEGELRASTER:
+ * elke tegel toont landvlag, landnaam, prefix en score. Klikbaar → drilldown.
  */
 import { state, ALL_BANDS } from './state.js';
 import { t } from './i18n.js';
@@ -17,6 +18,23 @@ const CONT = {
 };
 const CONT_ORDER = ['EU','AS','NA','SA','AF','OC','AN'];
 
+// ISO 3166-1 numeriek → alpha-2 (alleen de codes die in de DXCC-set voorkomen)
+const ISO_NUM_A2 = {
+  4:'AF',12:'DZ',31:'AZ',32:'AR',36:'AU',40:'AT',50:'BD',51:'AM',56:'BE',64:'BT',
+  68:'BO',70:'BA',72:'BW',76:'BR',100:'BG',104:'MM',108:'BI',112:'BY',116:'KH',120:'CM',
+  124:'CA',144:'LK',152:'CL',156:'CN',170:'CO',180:'CD',188:'CR',191:'HR',192:'CU',196:'CY',
+  203:'CZ',208:'DK',214:'DO',218:'EC',231:'ET',233:'EE',246:'FI',250:'FR',266:'GA',268:'GE',
+  276:'DE',288:'GH',300:'GR',328:'GY',332:'HT',348:'HU',352:'IS',356:'IN',360:'ID',364:'IR',
+  368:'IQ',372:'IE',376:'IL',380:'IT',384:'CI',388:'JM',392:'JP',398:'KZ',400:'JO',404:'KE',
+  408:'KP',410:'KR',414:'KW',417:'KG',418:'LA',422:'LB',428:'LV',434:'LY',440:'LT',442:'LU',
+  454:'MW',458:'MY',484:'MX',496:'MN',498:'MD',499:'ME',504:'MA',508:'MZ',512:'OM',516:'NA',
+  524:'NP',528:'NL',554:'NZ',566:'NG',578:'NO',586:'PK',591:'PA',598:'PG',600:'PY',604:'PE',
+  608:'PH',616:'PL',620:'PT',634:'QA',642:'RO',643:'RU',646:'RW',682:'SA',686:'SN',688:'RS',
+  703:'SK',704:'VN',705:'SI',706:'SO',710:'ZA',716:'ZW',724:'ES',729:'SD',740:'SR',752:'SE',
+  756:'CH',760:'SY',762:'TJ',764:'TH',784:'AE',788:'TN',792:'TR',795:'TM',800:'UG',804:'UA',
+  807:'MK',818:'EG',826:'GB',834:'TZ',840:'US',858:'UY',860:'UZ',862:'VE',887:'YE',894:'ZM',
+};
+
 // Open/dicht geheugen per continent
 const openState = { band: {}, region: {} };
 
@@ -32,6 +50,26 @@ function tier(s) {
 function bar(s)  { return `<div class="sb-wrap"><div class="sb ${tier(s)}" style="width:${s}%"></div></div>`; }
 function pct(s)  { return `<span class="spct ${tier(s)}">${s}%</span>`; }
 
+// iso_num → vlag-emoji (regional indicator symbols). Fallback: globe.
+function flagFor(entry) {
+  const iso = entry?.feature?.properties?.iso_num;
+  const a2  = ISO_NUM_A2[iso];
+  if (!a2) return '🌐';
+  return String.fromCodePoint(...[...a2].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+
+// Eén land-tegel
+function tile(id, entry, score, sub) {
+  return `
+    <button class="lv-tile ${tier(score)}" data-id="${id}">
+      <span class="lv-tflag">${flagFor(entry)}</span>
+      <span class="lv-tname" title="${entry.name}">${entry.name}</span>
+      <span class="lv-tmeta"><span class="lv-tpfx">${entry.prefix}</span>${sub ? `<span class="lv-tsub">${sub}</span>` : ''}</span>
+      <span class="lv-tscore ${tier(score)}">${score}%</span>
+      ${bar(score)}
+    </button>`;
+}
+
 export function updateListview() { updateByBand(); updateByRegion(); }
 
 // ─── By Band ─────────────────────────────────────────────────────────────────
@@ -41,7 +79,7 @@ export function updateByBand() {
   const cache = state.scoreCache;
   const step  = state.activeTimeOffset;
   const band  = state.activeBand;
-  const thr   = state.user.thresholdPct ?? 40;
+  const thr   = state.user.thresholdPct ?? 60;
 
   if (!state.scoreCacheBuilt || !Object.keys(cache).length) {
     el.innerHTML = '<div class="lv-empty">⏳ Laden…</div>'; return;
@@ -88,18 +126,14 @@ export function updateByBand() {
         ${bar(best)}${pct(best)}
         <span class="lv-chev">${isOpen ? '▾' : '▸'}</span>
       </div>
-      <div class="lv-gbody"${isOpen ? '' : ' style="display:none"'}>`;
+      <div class="lv-gbody"${isOpen ? '' : ' style="display:none"'}>
+        <div class="lv-grid">`;
 
     for (const { id, entry, score } of rows) {
       const hide = (filterOpen && score < thr) ? ' lv-hide' : '';
-      html += `
-        <div class="lv-row${hide}" data-id="${id}">
-          <span class="lv-pfx">${entry.prefix}</span>
-          <span class="lv-nm">${entry.name}</span>
-          ${bar(score)}${pct(score)}
-        </div>`;
+      html += tile(id, entry, score).replace('class="lv-tile', `class="lv-tile${hide}`);
     }
-    html += '</div></div>';
+    html += '</div></div></div>';
   }
 
   html += '</div>'; // end lv-scroll
@@ -121,9 +155,9 @@ function bindBand(el, cache, thr) {
       openState.band[cont] = !isOpen;
     });
   });
-  el.querySelectorAll('.lv-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const e = cache[row.dataset.id];
+  el.querySelectorAll('.lv-tile').forEach(tileEl => {
+    tileEl.addEventListener('click', () => {
+      const e = cache[tileEl.dataset.id];
       if (e?.feature) openDrilldown(e.feature);
     });
   });
@@ -143,7 +177,7 @@ export function updateByRegion() {
   const selected = state.selectedContinent;
 
   if (!selected) {
-    // Continent overzicht
+    // Continent overzicht (korte lijst — blijft rijen)
     const cd = {};
     for (const entry of Object.values(cache)) {
       const cont = entry.continent ?? 'EU';
@@ -181,14 +215,14 @@ export function updateByRegion() {
     return;
   }
 
-  // Entiteitlijst
+  // Entiteit-tegels voor het gekozen continent
   const info = CONT[selected] ?? { name: selected, flag: '🌐' };
   const rows = Object.entries(cache)
     .filter(([, e]) => (e.continent ?? 'EU') === selected)
     .map(([id, entry]) => {
       const sc   = entry.steps?.[step] ?? {};
       const best = Object.entries(sc).sort((a, b) => b[1]-a[1])[0];
-      return { id, entry, bestBand: best?.[0] ?? '—', bestScore: best?.[1] ?? 0, sc };
+      return { id, entry, bestBand: best?.[0] ?? '—', bestScore: best?.[1] ?? 0 };
     })
     .sort((a, b) => b.bestScore - a.bestScore);
 
@@ -197,31 +231,21 @@ export function updateByRegion() {
     <button class="lv-back" id="lv-back">← Terug</button>
     <span class="lv-ctitle">${info.flag} ${info.name}</span>
   </div>
-  <div class="lv-scroll">`;
+  <div class="lv-scroll">
+    <div class="lv-grid">`;
 
-  for (const { id, entry, bestBand, bestScore, sc } of rows) {
-    const bands = ALL_BANDS
-      .filter(b => (sc[b] ?? 0) > 0)
-      .map(b => `<span class="mb ${tier(sc[b])}" title="${b}:${sc[b]}%">${b}</span>`)
-      .join('');
-    html += `
-    <div class="lv-row" data-id="${id}">
-      <span class="lv-pfx">${entry.prefix}</span>
-      <span class="lv-nm">${entry.name}</span>
-      <div class="lv-bands">${bands}</div>
-      <span class="lv-chip">${bestBand}</span>
-      ${pct(bestScore)}
-    </div>`;
+  for (const { id, entry, bestBand, bestScore } of rows) {
+    html += tile(id, entry, bestScore, bestBand);
   }
-  html += '</div>';
+  html += '</div></div>';
   el.innerHTML = html;
 
   el.querySelector('#lv-back')?.addEventListener('click', () => {
     state.selectedContinent = null; updateByRegion();
   });
-  el.querySelectorAll('.lv-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const e = cache[row.dataset.id];
+  el.querySelectorAll('.lv-tile').forEach(tileEl => {
+    tileEl.addEventListener('click', () => {
+      const e = cache[tileEl.dataset.id];
       if (e?.feature) openDrilldown(e.feature);
     });
   });
