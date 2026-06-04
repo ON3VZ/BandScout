@@ -96,8 +96,16 @@ function featureStyle(feature) {
 
   const isGL = isGreylineFeature(feature);
   const fillColor  = scoreToHex(score);
-  const borderColor = isGL ? getCSSVar('--accent-greyline') : '#333';
-  const borderWidth = isGL ? 2 : 0.4;
+
+  // Greyline: toon via lichtere fill + dunne amber rand
+  // Maar NIET op polygonen die de antimeridian overschrijden (Rusland, Kiribati)
+  // om de horizontale balk te vermijden.
+  const bounds = feature.bbox ?? null;
+  const crossesAM = bounds ? (bounds[2] - bounds[0] > 180) : false;
+  const showGLborder = isGL && !crossesAM;
+
+  const borderColor = showGLborder ? getCSSVar('--accent-greyline') : '#333';
+  const borderWidth = showGLborder ? 2 : 0.4;
 
   return {
     fillColor,
