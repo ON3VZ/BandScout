@@ -24,7 +24,7 @@ export const state = {
     language:       'en',
     theme:          'dark',
     colorBlindMode: false,
-    thresholdPct:   40,       // score % below which "not reachable" for opening-soon
+    thresholdPct:   60,       // score % below which "not reachable" for opening-soon
     openingSoonHours: 2,      // horizon for opening-soon scan (1 | 2 | 3)
     configured:     false,    // false = show settings on first run
   },
