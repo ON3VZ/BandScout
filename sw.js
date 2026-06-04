@@ -7,7 +7,7 @@
  *  - Leaflet tiles:                Cache-first (stale-while-revalidate)
  */
 
-const APP_VERSION   = 'v1.2.1';
+const APP_VERSION   = 'v1.2.2';
 const SHELL_CACHE   = `hfbs-shell-${APP_VERSION}`;
 const TILE_CACHE    = `hfbs-tiles-${APP_VERSION}`;
 const NOAA_CACHE    = `hfbs-noaa-${APP_VERSION}`;
@@ -64,7 +64,7 @@ const TILE_ORIGINS = [
   'https://{a,b,c}.tile.openstreetmap.org',
 ];
 
-// ─── Install ──────────────────────────────────────────────────────────────────
+// ─── Install ─────────────────────────────────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(SHELL_CACHE).then(cache => {
@@ -117,7 +117,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(shellStrategy(request));
 });
 
-// ─── Strategies ───────────────────────────────────────────────────────────────
+// ─── Strategies ───────────────────────────────────────────────────────────
 
 async function shellStrategy(request) {
   const cached = await caches.match(request, { cacheName: SHELL_CACHE });
