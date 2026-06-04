@@ -95,7 +95,7 @@
 
 .nav-tab:hover { color: var(--text-primary); }
 
-.nav-tab.active {
+.nav-tab.is-active {
   color: var(--accent-primary);
   border-bottom-color: var(--accent-primary);
 }
