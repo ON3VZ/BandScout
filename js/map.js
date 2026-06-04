@@ -258,88 +258,62 @@ export function renderTerminator(timeStep) {
 
   const declR = decl * D2R;
 
-  // Genereer dawn + dusk terminatorpunten
-  const dawn = [], dusk = [];
-  for (let lat = -89.5; lat <= 89.5; lat += 0.5) {
-    const cosH = -Math.tan(lat * D2R) * Math.tan(declR);
-    if (Math.abs(cosH) > 1) continue;
-    const H2 = Math.acos(cosH) * R2D;
-    dawn.push([lat, ((subLon - H2 + 540) % 360) - 180]);
-    dusk.push([lat, ((subLon + H2 + 540) % 360) - 180]);
-  }
+  // ── Terminator als ÉÉN doorlopende curve, geparametriseerd per LENGTEGRAAD ──
+  // Voor elke lon bestaat er precies één terminator-breedtegraad:
+  //   lat = atan( -cos(H) / tan(decl) ),  met H = lon - subsolaire lon
+  // Dit geeft een gladde, ononderbroken boog — geen antimeridiaan-sprongen,
+  // geen poolgaten, geen losse subpaden. Daarmee verdwijnen de rechte grijze
+  // lijnen die de oude per-breedtegraad-aanpak in de fill achterliet.
+  const tanDecl = Math.tan(declR);
 
-  if (dawn.length === 0) {
-    const elev = SunCalc.getPosition(date, 0, 0).altitude;
-    if (elev < 0) {
-      terminatorCtx.fillStyle = 'rgba(0,0,22,0.42)';
-      terminatorCtx.fillRect(0, 0, W, H);
-    }
-    return;
-  }
-
-  // Lat/lon → canvas punt, met antimeridian-check
   function toXY(lat, lon) {
     try {
       const p = leafletMap.latLngToContainerPoint([lat, lon]);
-      // Verwerp punten ver buiten het canvas (antimeridian artefact)
       if (!isFinite(p.x) || !isFinite(p.y)) return null;
-      if (p.x < -W * 2 || p.x > W * 3) return null; // te ver rechts of links
       return { x: p.x, y: p.y };
     } catch { return null; }
   }
 
-  // Antisolar punt
-  const antiLon = ((subLon + 180 + 540) % 360) - 180;
-  const antiPt  = toXY(-decl, antiLon);
-  const nightRight = antiPt ? antiPt.x > W / 2 : false;
+  // Welke pool ligt in het donker?
+  //   decl >= 0 (zon boven NH) → zuidpool donker → nacht aan ONDERkant canvas
+  //   decl <  0 (zon boven ZH) → noordpool donker → nacht aan BOVENkant canvas
+  const southDark = decl >= 0;
 
   terminatorCtx.save();
   terminatorCtx.fillStyle = 'rgba(0,0,22,0.42)';
   terminatorCtx.beginPath();
 
-  // Teken dawn-lijn van laag naar hoog, met antimeridian-breuk detectie
-  let prevX = null;
+  // Bemonster ruim buiten ±180° zodat het pad de volledige canvasbreedte
+  // dekt, ook als de kaart horizontaal verschoven is (worldCopyJump).
   let started = false;
-  let lastValidY = null;
-
-  for (const [lat, lon] of dawn) {
-    const p = toXY(lat, lon);
-    if (!p) { prevX = null; continue; }
-
-    // Detecteer antimeridian-sprong: grote horizontale sprong
-    const isJump = prevX !== null && Math.abs(p.x - prevX) > W * 0.5;
-
-    if (!started || isJump) {
-      terminatorCtx.moveTo(p.x, p.y);
-      started = true;
-    } else {
-      terminatorCtx.lineTo(p.x, p.y);
-    }
-    prevX = p.x;
-    lastValidY = p.y;
+  for (let lon = -360; lon <= 360; lon += 2) {
+    const Hdeg = lon - subLon;
+    const tlat = Math.atan(-Math.cos(Hdeg * D2R) / tanDecl) * R2D;
+    const p = toXY(tlat, lon);
+    if (!p) continue;
+    if (!started) { terminatorCtx.moveTo(p.x, p.y); started = true; }
+    else          { terminatorCtx.lineTo(p.x, p.y); }
   }
 
-  // Sluit via kaartrand naar dusk
-  if (started) {
-    if (nightRight) {
-      terminatorCtx.lineTo(W, lastValidY ?? H);
-      terminatorCtx.lineTo(W, 0);
-    } else {
-      terminatorCtx.lineTo(0, lastValidY ?? 0);
-      terminatorCtx.lineTo(0, 0);
+  if (!started) {
+    // Volledige pooldag/poolnacht binnen beeld: vul of laat leeg
+    const elev = SunCalc.getPosition(date, 0, subLon).altitude;
+    if (elev < 0) {
+      terminatorCtx.fillStyle = 'rgba(0,0,22,0.42)';
+      terminatorCtx.fillRect(0, 0, W, H);
     }
+    terminatorCtx.restore();
+    return;
   }
 
-  // Dusk van hoog naar laag
-  prevX = null;
-  for (let k = dusk.length - 1; k >= 0; k--) {
-    const [lat, lon] = dusk[k];
-    const p = toXY(lat, lon);
-    if (!p) { prevX = null; continue; }
-    const isJump = prevX !== null && Math.abs(p.x - prevX) > W * 0.5;
-    if (isJump) terminatorCtx.moveTo(p.x, p.y);
-    else        terminatorCtx.lineTo(p.x, p.y);
-    prevX = p.x;
+  // Sluit het pad langs de donkere poolrand. Deze sluitlijnen liggen op de
+  // canvasrand (onder- of bovenkant) en zijn dus onzichtbaar.
+  if (southDark) {
+    terminatorCtx.lineTo(W, H);
+    terminatorCtx.lineTo(0, H);
+  } else {
+    terminatorCtx.lineTo(W, 0);
+    terminatorCtx.lineTo(0, 0);
   }
 
   terminatorCtx.closePath();
@@ -400,7 +374,6 @@ function updateBandDisplay() {
 // ─────────────────────────────────────────────
 // Initial data load trigger
 // ─────────────────────────────────────────────
-
 /**
  * Called after score cache is built — re-styles all layers.
  */
