@@ -66,13 +66,48 @@ export function init() {
 }
 
 /**
- * Rebuild the DXCC GeoJSON layer (call after data loads or user changes band).
+ * Ontvouw één polygoon-ring die de antimeridiaan (180°) overschrijdt.
+ * Leaflet vult zo'n ring anders als een balk over de hele kaartbreedte
+ * (Rusland, Fiji, Kiribati). We schuiven negatieve longitudes +360° zodat de
+ * ring aaneengesloten rond +180° ligt. Guard: alleen toepassen als de
+ * spanwijdte daardoor écht <= 180° wordt — poolomsluitende polygonen
+ * (Antarctica) blijven zo ongemoeid. Idempotent.
  */
+function unwrapRing(ring) {
+  let min = Infinity, max = -Infinity;
+  for (const pt of ring) { if (pt[0] < min) min = pt[0]; if (pt[0] > max) max = pt[0]; }
+  if (max - min <= 180) return ring; // overschrijdt de datumgrens niet
+  const shifted = ring.map(pt => (pt[0] < 0 ? [pt[0] + 360, pt[1]] : pt.slice()));
+  let smin = Infinity, smax = -Infinity;
+  for (const pt of shifted) { if (pt[0] < smin) smin = pt[0]; if (pt[0] > smax) smax = pt[0]; }
+  return (smax - smin <= 180) ? shifted : ring; // afwijzen als het niet echt ontvouwt
+}
+
+/**
+ * Pas unwrapRing toe op alle ringen van een feature (Polygon of MultiPolygon).
+ * Geometrie is alleen voor weergave (scoring gebruikt properties.lat/lon),
+ * dus dit beïnvloedt geen berekeningen.
+ */
+function normalizeFeatureGeometry(feature) {
+  const g = feature.geometry;
+  if (!g) return feature;
+  if (g.type === 'Polygon') {
+    g.coordinates = g.coordinates.map(unwrapRing);
+  } else if (g.type === 'MultiPolygon') {
+    g.coordinates = g.coordinates.map(poly => poly.map(unwrapRing));
+  }
+  return feature;
+}
+
 function buildDxccLayer() {
   if (dxccLayer) {
     leafletMap.removeLayer(dxccLayer);
     dxccLayer = null;
   }
+
+  // Ontvouw antimeridiaan-overschrijdende polygonen (Rusland, Fiji, Kiribati)
+  // zodat Leaflet ze niet als horizontale balk over de hele kaart vult.
+  for (const f of state.dxccFeatures) normalizeFeatureGeometry(f);
 
   dxccLayer = L.geoJSON(
     { type: 'FeatureCollection', features: state.dxccFeatures },
