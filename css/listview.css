@@ -86,3 +86,62 @@
 .mb.nil  { display:none; }
 .lv-cont-row { padding-left:14px; }
 .lv-cont-row .lv-cname { font-weight:500; }
+
+/* ── Tegelraster (By Band groepen + By Region entiteiten) ── */
+.lv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 naast elkaar op smal scherm */
+  gap: 6px;
+  padding: 8px;
+}
+@media (min-width: 560px) {
+  .lv-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+
+.lv-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 8px;
+  min-height: 44px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.lv-tile:hover { background: var(--bg-elevated); }
+.lv-tile.lv-hide { display: none; }
+
+.lv-tile.exc  { border-left-color: var(--score-excellent); }
+.lv-tile.good { border-left-color: var(--score-good); }
+.lv-tile.mod  { border-left-color: var(--score-moderate); }
+.lv-tile.poor { border-left-color: var(--score-poor); }
+.lv-tile.marg { border-left-color: #555; }
+.lv-tile.nil  { border-left-color: transparent; opacity: 0.6; }
+
+.lv-tflag { font-size: 20px; line-height: 1; }
+.lv-tname {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lv-tmeta { display: flex; align-items: center; gap: 6px; }
+.lv-tpfx  { font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--text-secondary); }
+.lv-tsub  { font-size: 10px; color: var(--text-muted); }
+.lv-tscore { font-size: 13px; font-weight: 700; font-family: var(--font-mono); }
+.lv-tscore.exc  { color: var(--score-excellent); }
+.lv-tscore.good { color: var(--score-good); }
+.lv-tscore.mod  { color: var(--score-moderate); }
+.lv-tscore.poor { color: var(--score-poor); }
+.lv-tscore.marg, .lv-tscore.nil { color: var(--text-muted); }
+.lv-tile .sb-wrap { width: 100%; }
