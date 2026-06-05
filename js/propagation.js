@@ -86,7 +86,7 @@ export function bandAbsorptionPenalty(band, elevTx, elevRx) {
   return 1 - coeff * Math.max(dTx, dRx);
 }
 
-// ─────────────────────────────────────────────
+// ────────────────────────────────────────────
 // 3. MUF model
 // ─────────────────────────────────────────────
 
@@ -96,11 +96,19 @@ export function bandAbsorptionPenalty(band, elevTx, elevRx) {
  *
  * @param {number} sfi        - Solar Flux Index (70–300 typical)
  * @param {number} distanceKm - great-circle path distance
+ * @param {number} solarElevDeg - zonshoogte (°), drijft dag/nacht-MUF
  * @returns {number} estimated MUF in MHz
  */
-export function estimateMUF(sfi, distanceKm) {
-  const distFactor = Math.min(1, distanceKm / 4000);
-  return (sfi * 0.12 + 2) * distFactor;
+export function estimateMUF(sfi, distanceKm, solarElevDeg = 90) {
+  // Kritische frequentie (verticale inval), SFI-afhankelijk, met dag/nacht-schaling.
+  // Lost het korte-pad-probleem op: korte paden hielden vroeger MUF ~0 over
+  // (distanceKm/4000), waardoor heel Europa "boven MUF" = gesloten = grijs werd.
+  const foF2base = 2 + sfi * 0.08;                                  // ~13.5 MHz @ SFI 144 (dagpiek)
+  const dayScale = 0.5 + 0.5 * Math.max(0, Math.min(1, solarElevDeg / 40));
+  const foF2     = foF2base * dayScale;                             // nacht ~0.5x, zon hoog = vol
+  // Obliciteitsfactor: verticaal (~1) tot ~3.4 bij enkel-/multi-hop >= 3000 km.
+  const obliquity = 1 + 2.4 * Math.min(1, distanceKm / 3000);
+  return foF2 * obliquity;
 }
 
 /**
@@ -122,7 +130,7 @@ export function bandStatus(bandFreqMHz, muf) {
 
 // ─────────────────────────────────────────────
 // 4. Base reliability from SFI
-// ─────────────────────────────────────────────
+// ────────────────────────────────────────────
 
 /**
  * SFI → base reliability (0–1).
@@ -339,7 +347,7 @@ export function esBonus(band, month, distanceKm, lat) {
 
 // ─────────────────────────────────────────────
 // 10. VHF/UHF (non-ionospheric model)
-// ─────────────────────────────────────────────
+// ────────────────────────────────────────────
 
 /**
  * Radio horizon distance estimate (simplified, no terrain).
@@ -369,7 +377,7 @@ export function vhfTropoScore(distKm, txHeightM = 10) {
   return 0;
 }
 
-// ─────────────────────────────────────────────
+// ────────────────────────────────────────────
 // 11. Master reliability pipeline
 // ─────────────────────────────────────────────
 
@@ -442,7 +450,7 @@ export function calcReliability(params) {
   }
 
   // Step 3 — MUF gate
-  const muf  = estimateMUF(sfi, distKm);
+  const muf  = estimateMUF(sfi, distKm, Math.max(elevTx, elevRx));
   const gate = bandStatus(bandFreq, muf);
 
   if (gate.score === 0) {
@@ -551,7 +559,7 @@ export function buildReasonString(band, score, details, sfi, kp) {
 
 // ─────────────────────────────────────────────
 // Internal helper (duplicate of utils to keep propagation.js self-contained)
-// ─────────────────────────────────────────────
+// ────────────────────────────────────────────
 
 function haversineKmInternal(lat1, lon1, lat2, lon2) {
   const R = 6371;
