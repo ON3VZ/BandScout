@@ -7,7 +7,7 @@
  *  - Leaflet tiles:                Cache-first (stale-while-revalidate)
  */
 
-const APP_VERSION   = 'v1.2.6';/**
+const APP_VERSION   = 'v1.2.7';/**
  * sw.js — HF Band Scout Service Worker
  *
  * Caching strategy:
