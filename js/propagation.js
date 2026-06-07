@@ -58,16 +58,16 @@ export function dLayerFactor(elevationDeg) {
 
 /** D-layer absorption coefficients per band */
 const D_LAYER_COEFF = {
-  '160m': 0.95,
-  '80m':  0.85,
-  '40m':  0.65,
-  '30m':  0.45,
-  '20m':  0.20,
+  '160m': 0.90,
+  '80m':  0.70,  // was 0.85
+  '40m':  0.50,  // was 0.65 → 40m dag niet meer donker rood
+  '30m':  0.35,
+  '20m':  0.15,
   '17m':  0.05,
   '15m':  0.04,
   '12m':  0.03,
-  '10m':  0.02,
-  '6m':   0.01,
+  '10m':  0.01,
+  '6m':   0.005,
 };
 
 /**
@@ -221,14 +221,14 @@ const REFERENCE_POWER_W = 100;
  * Larger margin = more tolerant of low power.
  */
 const MODE_MARGINS = {
-  'FT8':   20,
-  'FT4':   18,
-  'JT65':  22,
-  'CW':    13,
-  'SSB':    6,
-  'AM':     4,
-  'MSK144':12,
-  'default': 10,
+  'FT8':    28,
+  'FT4':    26,
+  'JT65':   30,
+  'CW':     20,
+  'SSB':    16,  // was 6 → 25W SSB factor ~0.62
+  'AM':     10,
+  'MSK144': 20,
+  'default':16,
 };
 
 /**
@@ -243,7 +243,7 @@ const MODE_MARGINS = {
 export function powerFactor(txPowerW, mode) {
   const dBdiff = 10 * Math.log10(txPowerW / REFERENCE_POWER_W);
   const margin = MODE_MARGINS[mode] ?? MODE_MARGINS['default'];
-  return Math.max(0.05, Math.min(1.3, 1 + (dBdiff / margin)));
+  return Math.max(0.40, Math.min(1.15, 1 + (dBdiff / margin)));
 }
 
 // ─────────────────────────────────────────────
