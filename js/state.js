@@ -71,7 +71,7 @@ export const state = {
 
 // ── Band definitions ──
 // Canonical list, ordered for display
-export const ALL_BANDS = ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'];
+export const ALL_BANDS = ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m'];
 
 // Frequencies in MHz for propagation calculations (VHF/UHF handled separately)
 export const BAND_FREQ_MHZ = {
@@ -90,18 +90,18 @@ export const BAND_FREQ_MHZ = {
 
 // Band access by licence class
 export const BAND_ACCESS = {
-  // Belgisch/CEPT Klasse C (Novice) — enkel deze banden, max 25W
-  'novice_be':  ['80m','40m','30m','20m','15m','10m','2m','70cm'],
+  // Belgisch/CEPT Klasse C — HF-banden, max 25W (ON3)
+  'novice_be':  ['80m','40m','30m','20m','15m','10m''],
   // Andere novice/foundation licenties
-  'novice':     ['80m','40m','30m','20m','15m','10m','2m','70cm'],
-  'technician': ['80m','40m','30m','20m','15m','10m','6m','2m','70cm'],
-  'general':    ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
-  'extra':      ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','2m','70cm','23cm'],
-  'full':       ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','2m','70cm','23cm'],
+  'novice':     ['80m','40m','30m','20m','15m','10m''],
+  'technician': ['80m','40m','30m','20m','15m','10m','6m''],
+  'general':    ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m''],
+  'extra':      ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','23cm'],
+  'full':       ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','23cm'],
   // Legacy
-  'A': ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
-  'B': ['80m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
-  'C': ['80m','40m','30m','20m','15m','10m','2m','70cm'],
+  'A': ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m''],
+  'B': ['80m','40m','30m','20m','17m','15m','12m','10m','6m''],
+  'C': ['80m','40m','30m','20m','15m','10m''],
 };
 
 // Power limits (W) per licence class
