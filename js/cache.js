@@ -81,7 +81,7 @@ export async function buildCache(features, onProgress) {
               time:    date,
               sfi,
               kp,
-              txPowerW: state.user.powerW ?? 100,
+              txPowerW: state.user.txPowerW ?? 100,
               mode:    state.user.mode   ?? 'ssb',
             });
             stepScores[band] = result.score ?? 0;
@@ -147,7 +147,7 @@ export async function rebuildEntry(dxccId) {
           time:    date,
           sfi,
           kp,
-          txPowerW: state.user.powerW ?? 100,
+          txPowerW: state.user.txPowerW ?? 100,
           mode:    state.user.mode   ?? 'ssb',
         });
         stepScores[band] = result.score ?? 0;
