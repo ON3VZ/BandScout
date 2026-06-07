@@ -373,7 +373,7 @@ export function renderBandSelector() {
   const container = document.getElementById('band-selector');
   if (!container) return;
 
-  const allBands = ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'];
+  const allBands = ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m'];
   const accessible = getActiveBands(state.user.licenseClass);
 
   container.innerHTML = '';
