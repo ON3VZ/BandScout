@@ -91,17 +91,17 @@ export const BAND_FREQ_MHZ = {
 // Band access by licence class
 export const BAND_ACCESS = {
   // Belgisch/CEPT Klasse C — HF-banden, max 25W (ON3)
-  'novice_be':  ['80m','40m','30m','20m','15m','10m''],
+  'novice_be':  ['80m','40m','30m','20m','15m','10m'],
   // Andere novice/foundation licenties
-  'novice':     ['80m','40m','30m','20m','15m','10m''],
-  'technician': ['80m','40m','30m','20m','15m','10m','6m''],
-  'general':    ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m''],
+  'novice':     ['80m','40m','30m','20m','15m','10m'],
+  'technician': ['80m','40m','30m','20m','15m','10m','6m'],
+  'general':    ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m'],
   'extra':      ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','23cm'],
   'full':       ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','4m','23cm'],
   // Legacy
-  'A': ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m''],
-  'B': ['80m','40m','30m','20m','17m','15m','12m','10m','6m''],
-  'C': ['80m','40m','30m','20m','15m','10m''],
+  'A': ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m'],
+  'B': ['80m','40m','30m','20m','17m','15m','12m','10m','6m'],
+  'C': ['80m','40m','30m','20m','15m','10m'],
 };
 
 // Power limits (W) per licence class
