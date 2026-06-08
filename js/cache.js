@@ -175,15 +175,9 @@ export function invalidateCache() {
  * Steps map onto today's UTC 24h starting from midnight.
  */
 export function stepToDate(step) {
-  const now   = new Date();
-  const base  = new Date(Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    0, 0, 0, 0,
-  ));
-  base.setUTCMinutes(step * STEP_MINUTES);
-  return base;
+  // Stappen lopen RELATIEF vanaf nu (step 0 = nu, step 47 = +23.5u).
+  // Consistent met de terminator en tijd-display die ook 'nu + offset' gebruiken.
+  return new Date(Date.now() + step * STEP_MINUTES * 60 * 1000);
 }
 
 function yieldToUI() {
