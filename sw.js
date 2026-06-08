@@ -7,7 +7,7 @@
  *  - Leaflet tiles:                Cache-first (stale-while-revalidate)
  */
 
-const APP_VERSION   = 'v1.2.8';
+const APP_VERSION   = 'v1.2.9';
 const SHELL_CACHE   = `hfbs-shell-${APP_VERSION}`;
 const TILE_CACHE    = `hfbs-tiles-${APP_VERSION}`;
 const NOAA_CACHE    = `hfbs-noaa-${APP_VERSION}`;
@@ -80,7 +80,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ─── Activate ─────────────────────────────────────────────────────────────────
+// ─── Activate ────────────────────────────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -117,8 +117,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(shellStrategy(request));
 });
 
-// ─── Strategies ───────────────────────────────────────────────────────────
-
+// ─── Strategies ──────────────────────────────────────────────────────────
 async function shellStrategy(request) {
   const cached = await caches.match(request, { cacheName: SHELL_CACHE });
   if (cached) return cached;
@@ -195,7 +194,7 @@ async function tileStrategy(request) {
   }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────
 
 function isTileRequest(url) {
   return (
@@ -215,10 +214,12 @@ async function evictTiles(cache) {
   } catch { /* ignore */ }
 }
 
-// ─── Message handler (e.g. skipWaiting from app) ─────────────────────────────
+// ─── Message handler (e.g. skipWaiting from app) ──────────────────────────────
 self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
   if (event.data?.type === 'CLEAR_TILE_CACHE') {
     caches.delete(TILE_CACHE).catch(() => {});
+  }
+});
