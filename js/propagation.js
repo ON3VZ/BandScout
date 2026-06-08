@@ -221,14 +221,14 @@ const REFERENCE_POWER_W = 100;
  * Larger margin = more tolerant of low power.
  */
 const MODE_MARGINS = {
-  'FT8':    28,
-  'FT4':    26,
-  'JT65':   30,
-  'CW':     20,
-  'SSB':    16,  // was 6 → 25W SSB factor ~0.62
-  'AM':     10,
-  'MSK144': 20,
-  'default':16,
+  'FT8':    44,
+  'FT4':    40,
+  'JT65':   48,
+  'CW':     36,
+  'SSB':    30,   // 25W SSB factor ~0.80 — 25W werkt in praktijk
+  'AM':     22,
+  'MSK144': 36,
+  'default':32,
 };
 
 /**
@@ -243,7 +243,7 @@ const MODE_MARGINS = {
 export function powerFactor(txPowerW, mode) {
   const dBdiff = 10 * Math.log10(txPowerW / REFERENCE_POWER_W);
   const margin = MODE_MARGINS[mode] ?? MODE_MARGINS['default'];
-  return Math.max(0.40, Math.min(1.15, 1 + (dBdiff / margin)));
+  return Math.max(0.60, Math.min(1.15, 1 + (dBdiff / margin)));
 }
 
 // ─────────────────────────────────────────────
@@ -454,9 +454,11 @@ export function calcReliability(params) {
   const gate = bandStatus(bandFreq, muf);
 
   if (gate.score === 0) {
+    // Skip-zone: korte paden boven MUF kunnen nog via backscatter/grondgolf/NVIS
+    const szFloor = distKm < 1200 ? 8 : 0;
     return {
-      score: 0, score100W: 0,
-      details: { distKm, muf, elevTx, elevRx, isTxGL: false, isRxGL: false, status: 'closed', reason: 'above_muf', hops: numHops(distKm) },
+      score: szFloor, score100W: szFloor,
+      details: { distKm, muf, elevTx, elevRx, isTxGL: false, isRxGL: false, status: szFloor > 0 ? 'skip-zone' : 'closed', reason: 'above_muf', hops: numHops(distKm) },
     };
   }
 
