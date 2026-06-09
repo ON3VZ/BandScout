@@ -3,7 +3,7 @@
  * Inklapbare continent-groepen met een responsief TEGELRASTER:
  * elke tegel toont landvlag, landnaam, prefix en score. Klikbaar → drilldown.
  */
-import { state, ALL_BANDS } from './state.js';
+import { state, ALL_BANDS, getActiveBands } from './state.js';
 import { t } from './i18n.js';
 import { openDrilldown } from './drilldown.js';
 
@@ -97,10 +97,13 @@ export function updateByBand() {
   const allE = Object.values(groups).flat();
   const reach = allE.filter(e => e.score >= thr).length;
 
+  const bands = getActiveBands();
   let html = `
+  <div class="lv-bandtabs">
+    ${bands.map(b => `<button class="lv-bandtab${b===band?' is-active':''}" data-band="${b}">${b}</button>`).join('')}
+  </div>
   <div class="lv-top">
     <div class="lv-top-l">
-      <span class="lv-chip">${band}</span>
       <span class="lv-sum">${reach} / ${allE.length} bereikbaar</span>
     </div>
     <label class="lv-chk"><input type="checkbox" id="lv-cb"${filterOpen?' checked':''}> ≥${thr}% only</label>
@@ -144,6 +147,12 @@ export function updateByBand() {
 function bindBand(el, cache, thr) {
   el.querySelector('#lv-cb')?.addEventListener('change', e => {
     state.lvFilterOpen = e.target.checked; updateByBand();
+  });
+  el.querySelectorAll('.lv-bandtab').forEach(bt => {
+    bt.addEventListener('click', () => {
+      state.activeBand = bt.dataset.band;
+      updateByBand();
+    });
   });
   el.querySelectorAll('.lv-ghdr').forEach(hdr => {
     hdr.addEventListener('click', () => {
