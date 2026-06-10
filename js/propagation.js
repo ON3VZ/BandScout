@@ -242,7 +242,9 @@ const MODE_MARGINS = {
  */
 export function powerFactor(txPowerW, mode) {
   const dBdiff = 10 * Math.log10(txPowerW / REFERENCE_POWER_W);
-  const margin = MODE_MARGINS[mode] ?? MODE_MARGINS['default'];
+  // FIX A1: settings.js slaat mode lowercase op ('ssb'); keys zijn uppercase.
+  // Zonder normalisatie viel ELKE mode terug op 'default' (marge 32).
+  const margin = MODE_MARGINS[String(mode ?? '').toUpperCase()] ?? MODE_MARGINS['default'];
   return Math.max(0.60, Math.min(1.15, 1 + (dBdiff / margin)));
 }
 
@@ -456,9 +458,21 @@ export function calcReliability(params) {
   if (gate.score === 0) {
     // Skip-zone: korte paden boven MUF kunnen nog via backscatter/grondgolf/NVIS
     const szFloor = distKm < 1200 ? 8 : 0;
+    // FIX A2: Sporadic-E is precies het mechanisme dat 10m/6m opent als de
+    // F2-MUF te laag is. De Es-bonus mag dus NIET door de MUF-gate worden
+    // geblokkeerd. Es-kans (0–0.40) wordt hier als zelfstandige score gebruikt.
+    const month = time.getUTCMonth() + 1;
+    const esB   = esBonus(band, month, distKm, txLat);
+    const base  = Math.max(szFloor, Math.round(esB * 100));
+    const pf    = powerFactor(txPowerW, mode);
     return {
-      score: szFloor, score100W: szFloor,
-      details: { distKm, muf, elevTx, elevRx, isTxGL: false, isRxGL: false, status: szFloor > 0 ? 'skip-zone' : 'closed', reason: 'above_muf', hops: numHops(distKm) },
+      score:     Math.round(Math.max(0, Math.min(99, base * pf))),
+      score100W: base,
+      details: {
+        distKm, muf, elevTx, elevRx, isTxGL: false, isRxGL: false,
+        status: esB > 0 ? 'sporadic-e' : (szFloor > 0 ? 'skip-zone' : 'closed'),
+        reason: 'above_muf', hops: numHops(distKm),
+      },
     };
   }
 
@@ -473,7 +487,7 @@ export function calcReliability(params) {
   // Step 6 — D-layer absorption
   rel *= bandAbsorptionPenalty(band, elevTx, elevRx);
 
-  // Step 7 — Greyline bonus
+  // Step 7 — Greyline detection (bonus wordt pas NA multihop opgeteld — fix A4)
   let isTxGL = false, isRxGL = false;
   if (typeof SunCalc !== 'undefined') {
     const WINDOW_MS = 20 * 60 * 1000;
@@ -484,7 +498,6 @@ export function calcReliability(params) {
     isTxGL = glCheck(times.sunrise) || glCheck(times.sunset);
     isRxGL = glCheck(timesRx.sunrise) || glCheck(timesRx.sunset);
   }
-  rel = Math.min(0.99, rel + greylineBonus(band, isTxGL, isRxGL));
 
   // Step 8 — F2 gradient (long paths only — NEVER < 1500 km)
   rel = applyF2Gradient(rel, distKm, sfi, elevTx);
@@ -492,14 +505,21 @@ export function calcReliability(params) {
   // Step 9 — Multi-hop attenuation
   rel *= multiHopFactor(band, distKm);
 
-  // Step 10 — Sporadic-E bonus
+  // Step 10 — Greyline bonus (additief, NA multihop)
+  // FIX A4: voorheen werd de bonus vóór multiHopFactor opgeteld en daardoor
+  // op lange paden (bv. 80m naar VK, factor 0.06) weggevermenigvuldigd —
+  // exact het scenario waarvoor greyline-DX bestaat. Nu blijft de volle
+  // bonus overeind op lange-pad greyline-DX.
+  rel = Math.min(0.99, rel + greylineBonus(band, isTxGL, isRxGL));
+
+  // Step 11 — Sporadic-E bonus
   const month = time.getUTCMonth() + 1; // 1–12
   rel = Math.min(0.99, rel + esBonus(band, month, distKm, txLat));
 
-  // Step 11 — Clamp to 0–99% for 100W reference
+  // Step 12 — Clamp to 0–99% for 100W reference
   const score100W = Math.round(Math.max(0, Math.min(99, rel * 100)));
 
-  // Step 12 — Power correction
+  // Step 13 — Power correction
   const pf = powerFactor(txPowerW, mode);
   const score = Math.round(Math.max(0, Math.min(99, rel * pf * 100)));
 
