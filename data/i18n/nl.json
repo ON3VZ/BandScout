@@ -204,5 +204,6 @@
   "settings.qrm": "Lokaal stoorniveau (QRM)",
   "settings.qrm_low": "Laag — landelijk / rustige QTH",
   "settings.qrm_high": "Hoog — stedelijk / veel QRM",
-  "api.wspr": "wspr.live (echte spots)"
+  "api.wspr": "wspr.live (echte spots)",
+  "drilldown.spread": "Score varieert over dit enorme gebied ({band}): west {w}% ↔ oost {e}%. De kaartkleur toont het conservatiefste punt."
 }

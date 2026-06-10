@@ -203,5 +203,6 @@
   "settings.qrm": "Local noise level (QRM)",
   "settings.qrm_low": "Low — rural / quiet QTH",
   "settings.qrm_high": "High — urban / strong QRM",
-  "api.wspr": "wspr.live (real spots)"
+  "api.wspr": "wspr.live (real spots)",
+  "drilldown.spread": "Score varies across this huge area ({band}): west {w}% ↔ east {e}%. Map colour shows the most conservative point."
 }

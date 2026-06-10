@@ -15,6 +15,7 @@
  */
 
 import { state, ALL_BANDS, getActiveBands } from './state.js';
+import { lonExtremes, WIDE_ENTITY_SPAN_DEG } from './utils.js';
 import { calcReliability } from './propagation.js';
 import { getKpAtStep }     from './noaa.js';
 
@@ -62,6 +63,13 @@ export async function buildCache(features, onProgress) {
       const dxccLat = props.lat ?? getCentroidLat(feature);
       const dxccLon = props.lon ?? getCentroidLon(feature);
 
+      // REUZEN-ENTITEITEN (Rusland, Canada, VS, …): één centroïde-score
+      // kleurt anders 9000 km in één kleur. Bereken óók de west/oost-
+      // uitersten en neem per band de LAAGSTE score (conservatief) —
+      // de kaart belooft dan nooit meer dan het zwakste deel waarmaakt.
+      const ext = lonExtremes(feature);
+      const isWide = ext && ext.spanDeg > WIDE_ENTITY_SPAN_DEG;
+
       const steps = {};
 
       for (let step = 0; step < TOTAL_STEPS; step++) {
@@ -72,19 +80,19 @@ export async function buildCache(features, onProgress) {
 
         for (const band of getActiveBands()) {
           try {
-            const result = calcReliability({
-              txLat: userLat ?? 52,
-              txLon: userLon ?? 5,
-              rxLat: dxccLat,
-              rxLon: dxccLon,
-              band,
-              time:    date,
-              sfi,
-              kp,
+            const base = {
+              txLat: userLat ?? 52, txLon: userLon ?? 5,
+              band, time: date, sfi, kp,
               txPowerW: state.user.txPowerW ?? 100,
               mode:    state.user.mode   ?? 'ssb',
-            });
-            stepScores[band] = result.score ?? 0;
+            };
+            let s = calcReliability({ ...base, rxLat: dxccLat, rxLon: dxccLon }).score ?? 0;
+            if (isWide) {
+              const sw = calcReliability({ ...base, rxLat: ext.west.lat, rxLon: ext.west.lon }).score ?? 0;
+              const se = calcReliability({ ...base, rxLat: ext.east.lat, rxLon: ext.east.lon }).score ?? 0;
+              s = Math.min(s, sw, se);
+            }
+            stepScores[band] = s;
           } catch (e) {
             stepScores[band] = 0;
           }

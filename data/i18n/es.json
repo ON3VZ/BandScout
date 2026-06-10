@@ -203,5 +203,6 @@
   "settings.qrm": "Nivel de ruido local (QRM)",
   "settings.qrm_low": "Bajo — rural / QTH tranquilo",
   "settings.qrm_high": "Alto — urbano / mucho QRM",
-  "api.wspr": "wspr.live (spots reales)"
+  "api.wspr": "wspr.live (spots reales)",
+  "drilldown.spread": "La puntuación varía en esta zona enorme ({band}): oeste {w}% ↔ este {e}%. El color del mapa muestra el punto más conservador."
 }

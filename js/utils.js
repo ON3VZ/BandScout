@@ -322,3 +322,52 @@ export function showToast(message, durationMs = 3000) {
 export function getCSSVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
+
+
+/**
+ * West- en oost-uiterste van een GeoJSON-feature, met afhandeling van
+ * antimeridiaan-kruisers (Rusland: Kaliningrad 19°O t/m Tsjoekotka 190°O).
+ * Gebruikt voor de score-spreiding van reusachtige DXCC-entiteiten.
+ *
+ * @param {GeoJSON.Feature} feature
+ * @returns {{ west: {lat:number,lon:number}, east: {lat:number,lon:number}, spanDeg: number } | null}
+ */
+export function lonExtremes(feature) {
+  try {
+    const coords = [];
+    const walk = (c) => {
+      if (typeof c[0] === 'number') { coords.push(c); return; }
+      for (const x of c) walk(x);
+    };
+    walk(feature.geometry.coordinates);
+    if (coords.length === 0) return null;
+
+    let lons = coords.map(c => c[0]);
+    let min = Math.min(...lons), max = Math.max(...lons);
+    let remap = false;
+    if (max - min > 180) {
+      // Antimeridiaan-kruiser: hermap negatieve lons naar 0–360
+      remap = true;
+      lons = lons.map(l => l < 0 ? l + 360 : l);
+      min = Math.min(...lons);
+      max = Math.max(...lons);
+    }
+    const norm = (l) => (l > 180 ? l - 360 : l);
+    let wIdx = 0, eIdx = 0;
+    coords.forEach((c, i) => {
+      const l = remap && c[0] < 0 ? c[0] + 360 : c[0];
+      const lw = remap && coords[wIdx][0] < 0 ? coords[wIdx][0] + 360 : coords[wIdx][0];
+      const le = remap && coords[eIdx][0] < 0 ? coords[eIdx][0] + 360 : coords[eIdx][0];
+      if (l < lw) wIdx = i;
+      if (l > le) eIdx = i;
+    });
+    return {
+      west:    { lat: coords[wIdx][1], lon: norm(remap && coords[wIdx][0] < 0 ? coords[wIdx][0] + 360 : coords[wIdx][0]) },
+      east:    { lat: coords[eIdx][1], lon: norm(remap && coords[eIdx][0] < 0 ? coords[eIdx][0] + 360 : coords[eIdx][0]) },
+      spanDeg: max - min,
+    };
+  } catch { return null; }
+}
+
+/** Drempel (graden lengte) waarboven een entiteit als 'reus' geldt */
+export const WIDE_ENTITY_SPAN_DEG = 50;

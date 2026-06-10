@@ -203,5 +203,6 @@
   "settings.qrm": "Lokaler Störpegel (QRM)",
   "settings.qrm_low": "Niedrig — ländlich / ruhiges QTH",
   "settings.qrm_high": "Hoch — städtisch / starkes QRM",
-  "api.wspr": "wspr.live (echte Spots)"
+  "api.wspr": "wspr.live (echte Spots)",
+  "drilldown.spread": "Der Score variiert über dieses riesige Gebiet ({band}): West {w}% ↔ Ost {e}%. Die Kartenfarbe zeigt den konservativsten Punkt."
 }

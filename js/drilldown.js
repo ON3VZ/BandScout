@@ -9,7 +9,7 @@
 
 import { state, scoreClass, scoreToHex, getActiveBands, BAND_FREQ_MHZ } from './state.js';
 import { t } from './i18n.js';
-import { haversineKm, bearingDeg, fmtKm, fmtAzimuth, antipode, showToast } from './utils.js';
+import { haversineKm, bearingDeg, fmtKm, fmtAzimuth, antipode, showToast, lonExtremes, WIDE_ENTITY_SPAN_DEG } from './utils.js';
 import { buildReasonString, calcReliability } from './propagation.js';
 import { stepToDate } from './cache.js';
 import { getKpAtStep } from './noaa.js';
@@ -165,7 +165,33 @@ function renderScoresTable(props, rxLat, rxLon) {
   // Best band
   const best = rows.reduce((a, b) => b.score > a.score ? b : a, rows[0]);
 
+  // SPREIDINGSINDICATOR voor reuzen-entiteiten: score op west- en oost-
+  // uiterste van het polygoon voor de actieve band, naast de centroïde.
+  // De kaartkleur is conservatief (laagste van de drie, zie cache.js);
+  // hier ziet de gebruiker de werkelijke spreiding over het gebied.
+  let spreadHTML = '';
+  const feat = state.selectedDxcc;
+  const ext  = feat ? lonExtremes(feat) : null;
+  if (ext && ext.spanDeg > WIDE_ENTITY_SPAN_DEG && state.drilldownPath !== 'long') {
+    try {
+      const baseP = {
+        band: state.activeBand,
+        txLat: state.user.lat ?? 51.18, txLon: state.user.lon ?? 4.35,
+        time, sfi, kp: kpStep,
+        txPowerW: state.user.txPowerW ?? 25, mode: state.user.mode ?? 'ssb',
+      };
+      const sw = calcReliability({ ...baseP, rxLat: ext.west.lat, rxLon: ext.west.lon }).score ?? 0;
+      const se = calcReliability({ ...baseP, rxLat: ext.east.lat, rxLon: ext.east.lon }).score ?? 0;
+      const txt = t('drilldown.spread')
+        .replace('{band}', state.activeBand)
+        .replace('{w}', sw)
+        .replace('{e}', se);
+      spreadHTML = `<p class="spread-note">↔ ${txt}</p>`;
+    } catch { /* ignore */ }
+  }
+
   const tableHTML = `
+    ${spreadHTML}
     <div id="drilldown-scores-header">
       <h3 data-i18n="drilldown.scores">${t('drilldown.scores')}</h3>
     </div>

@@ -203,5 +203,6 @@
   "settings.qrm": "Livello di rumore locale (QRM)",
   "settings.qrm_low": "Basso — rurale / QTH tranquillo",
   "settings.qrm_high": "Alto — urbano / molto QRM",
-  "api.wspr": "wspr.live (spot reali)"
+  "api.wspr": "wspr.live (spot reali)",
+  "drilldown.spread": "Il punteggio varia su questa zona enorme ({band}): ovest {w}% ↔ est {e}%. Il colore della mappa mostra il punto più prudente."
 }
