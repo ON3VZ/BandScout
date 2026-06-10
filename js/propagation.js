@@ -113,19 +113,50 @@ export function estimateMUF(sfi, distanceKm, solarElevDeg = 90) {
 
 /**
  * Band gating against MUF.
- * Returns status and short-circuit score if applicable.
+ * Returns status label and short-circuit score if applicable.
+ * FASE 3 (B2/B3): de harde gates (0 / vaste 15) zijn vervangen door een
+ * continue taper — zie mufFactor(). Deze functie levert nu alleen nog het
+ * statuslabel; 'closed' begint pas bij ratio > 1.25 (waar de taper 0 raakt).
  *
  * @param {number} bandFreqMHz - band centre frequency
  * @param {number} muf         - estimated MUF in MHz
  * @returns {{ status: string, score: number|null }}
- *   score is 0 (closed), 15 (marginal), or null (continue pipeline)
  */
 export function bandStatus(bandFreqMHz, muf) {
   const ratio = bandFreqMHz / muf;
-  if (ratio > 1.10) return { status: 'closed',    score: 0  };
-  if (ratio > 0.95) return { status: 'marginal',  score: 15 };
+  if (ratio > 1.30) return { status: 'closed',    score: 0   };
+  if (ratio > 0.95) return { status: 'marginal',  score: null };
   if (ratio > 0.80) return { status: 'good',      score: null };
   return               { status: 'suboptimal',  score: null }; // D-layer dominant
+}
+
+/**
+ * Continue MUF-waarschijnlijkheidsfactor (FASE 3, B2/B3).
+ * Echte propagatie heeft een kansverdeling rond de MUF; de oude binaire
+ * gates (open → 15% → 0%) gaven harde "cliffs" tussen buurlanden op de
+ * kaart (bv. DL 15m = 8 naast EA 15m = 76). Cosinus-taper van 1.0 bij
+ * ratio ≤ 0.95 naar 0 bij ratio ≥ 1.25. Dit vervangt ook de oude
+ * "marginal = 15"-basis (B3): de taper is nu het natuurlijke plafond en
+ * wordt niet meer dubbel gestraft door een vaste lage basis.
+ *
+ * @param {number} bandFreqMHz
+ * @param {number} muf
+ * @returns {number} factor 0–1
+ */
+export function mufFactor(bandFreqMHz, muf) {
+  // Verankerd op de klassieke definities:
+  //   FOT ≈ 0.85 × MUF → ~100% kans
+  //   MUF zelf         → 50% kans (per definitie: mediaan)
+  //   HPF-zone         → uitlopend naar 0 bij ratio 1.30
+  const ratio = bandFreqMHz / muf;
+  if (ratio <= 0.85) return 1.0;
+  if (ratio >= 1.30) return 0.0;
+  if (ratio < 1.0) {
+    // 0.85 → 1.0 : 1.0 → 0.5 (cosinussegment)
+    return 0.75 + 0.25 * Math.cos(Math.PI * (ratio - 0.85) / 0.15);
+  }
+  // 1.0 → 1.30 : 0.5 → 0 (cosinussegment)
+  return 0.25 + 0.25 * Math.cos(Math.PI * (ratio - 1.0) / 0.30);
 }
 
 // ─────────────────────────────────────────────
@@ -274,17 +305,19 @@ export function numHops(distanceKm) {
 
 /**
  * Multi-hop attenuation factor.
- * Each hop beyond the first adds dB loss.
+ * FASE 3 (B1): fractionele hops i.p.v. ceil() — de oude trapfunctie gaf
+ * harde sprongen op hopgrenzen (3400 km factor 1.00 → 3600 km factor 0.71)
+ * die op de kaart als concentrische kleurringen zichtbaar waren.
  *
  * @param {string} band       - e.g. '40m'
  * @param {number} distanceKm
  * @returns {number} linear factor 0–1
  */
 export function multiHopFactor(band, distanceKm) {
-  const hops = numHops(distanceKm);
-  if (hops <= 1) return 1.0;
+  const hopsF = distanceKm / 3500;          // fractioneel aantal hops
+  if (hopsF <= 1) return 1.0;
   const lossPerHop = HOP_LOSS_DB[band] ?? 3;
-  const totalLoss = lossPerHop * (hops - 1);
+  const totalLoss = lossPerHop * (hopsF - 1); // vloeiend vanaf 3500 km
   return Math.pow(10, -totalLoss / 20);
 }
 
@@ -331,9 +364,10 @@ const ES_SH_MONTHS = new Set([11, 12, 1]);
  * @param {number} month      - UTC month (1–12)
  * @param {number} distanceKm - great-circle distance
  * @param {number} lat        - TX latitude (for NH/SH determination)
+ * @param {number} [localHour=15] - lokale zonnetijd op het padmidden (0–24)
  * @returns {number} additive bonus (0–0.40)
  */
-export function esBonus(band, month, distanceKm, lat) {
+export function esBonus(band, month, distanceKm, lat, localHour = 15) {
   const basePct = ES_BANDS[band];
   if (!basePct) return 0;
 
@@ -344,7 +378,12 @@ export function esBonus(band, month, distanceKm, lat) {
   const isSHPeak = lat <  0 && ES_SH_MONTHS.has(month);
   const seasonFactor = (isNHPeak || isSHPeak) ? 1.0 : 0.2;
 
-  return basePct * seasonFactor;
+  // FASE 3: dagfactor — Es piekt rond late ochtend en vroege avond en is
+  // 's nachts zeldzaam. Cosinus rond 15:00 lokale zonnetijd: 1.0 om 15:00,
+  // ~0.3 om 03:00. Voorheen kleurde 10m-Es ook om 03:00 's nachts.
+  const diurnal = 0.3 + 0.7 * Math.max(0, Math.cos((localHour - 15) * Math.PI / 12));
+
+  return basePct * seasonFactor * diurnal;
 }
 
 // ─────────────────────────────────────────────
@@ -478,14 +517,18 @@ export function calcReliability(params) {
   const muf  = estimateMUF(sfi, distKm, minPathElev);
   const gate = bandStatus(bandFreq, muf);
 
-  if (gate.score === 0) {
+  // Lokale zonnetijd op het padmidden (voor Es-dagfactor, fase 3)
+  const midLon = greatCirclePoint(txLat, txLon, rxLat, rxLon, 0.5).lon;
+  const localHourMid = ((time.getUTCHours() + time.getUTCMinutes() / 60) + midLon / 15 + 24) % 24;
+
+  if (gate.status === 'closed') {
     // Skip-zone: korte paden boven MUF kunnen nog via backscatter/grondgolf/NVIS
     const szFloor = distKm < 1200 ? 8 : 0;
     // FIX A2: Sporadic-E is precies het mechanisme dat 10m/6m opent als de
     // F2-MUF te laag is. De Es-bonus mag dus NIET door de MUF-gate worden
     // geblokkeerd. Es-kans (0–0.40) wordt hier als zelfstandige score gebruikt.
     const month = time.getUTCMonth() + 1;
-    const esB   = esBonus(band, month, distKm, txLat);
+    const esB   = esBonus(band, month, distKm, txLat, localHourMid);
     const base  = Math.max(szFloor, Math.round(esB * 100));
     const pf    = powerFactor(txPowerW, mode);
     return {
@@ -499,10 +542,10 @@ export function calcReliability(params) {
     };
   }
 
-  // Step 4 — Base reliability
-  let rel = gate.score !== null
-    ? gate.score / 100           // marginal gate (15% ceiling)
-    : sfiBaseReliability(sfi);   // continue with SFI base
+  // Step 4 — Base reliability × continue MUF-taper (fase 3, B2/B3)
+  // De taper vervangt de oude "marginal = vaste 15%"-basis die daarna nog
+  // door Kp/absorptie/multihop/power werd vermenigvuldigd (dubbele straf).
+  let rel = sfiBaseReliability(sfi) * mufFactor(bandFreq, muf);
 
   // Step 5 — Kp degradation
   rel *= kpFactor(band, kp);
@@ -535,9 +578,9 @@ export function calcReliability(params) {
   // bonus overeind op lange-pad greyline-DX.
   rel = Math.min(0.99, rel + greylineBonus(band, isTxGL, isRxGL));
 
-  // Step 11 — Sporadic-E bonus
+  // Step 11 — Sporadic-E bonus (met dagfactor, fase 3)
   const month = time.getUTCMonth() + 1; // 1–12
-  rel = Math.min(0.99, rel + esBonus(band, month, distKm, txLat));
+  rel = Math.min(0.99, rel + esBonus(band, month, distKm, txLat, localHourMid));
 
   // Step 12 — Clamp to 0–99% for 100W reference
   const score100W = Math.round(Math.max(0, Math.min(99, rel * 100)));
