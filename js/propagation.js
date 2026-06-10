@@ -276,7 +276,12 @@ export function powerFactor(txPowerW, mode) {
   // FIX A1: settings.js slaat mode lowercase op ('ssb'); keys zijn uppercase.
   // Zonder normalisatie viel ELKE mode terug op 'default' (marge 32).
   const margin = MODE_MARGINS[String(mode ?? '').toUpperCase()] ?? MODE_MARGINS['default'];
-  return Math.max(0.60, Math.min(1.15, 1 + (dBdiff / margin)));
+  // FASE 4 — kalibratie: floor 0.60/cap 1.15 maakte de vermogensinstelling
+  // bijna cosmetisch (1W SSB kreeg nog 60%, 1.5kW maar +15%). Nu floor 0.25,
+  // cap 1.25. Het 25W-anker blijft EXACT gelijk (SSB 0.80 / CW 0.83 /
+  // FT8 0.86); alleen de uiteinden veranderen: 1W SSB → 0.33 (terecht zwaar),
+  // 1W FT8 → 0.55 (QRP-digitaal werkt), QRO → tot +25%.
+  return Math.max(0.25, Math.min(1.25, 1 + (dBdiff / margin)));
 }
 
 // ─────────────────────────────────────────────

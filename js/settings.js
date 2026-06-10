@@ -101,6 +101,22 @@ export function saveSettings(data) {
   }
 }
 
+/**
+ * Persisteer één of meer velden direct naar localStorage (merge),
+ * zonder formuliervalidatie. Voor globale voorkeuren (taal, thema)
+ * die niet achter de Save-knop horen te wachten.
+ */
+function persistPartial(patch) {
+  try {
+    const raw    = localStorage.getItem(SETTINGS_KEY);
+    const stored = raw ? JSON.parse(raw) : { ...DEFAULTS };
+    Object.assign(stored, patch);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(stored));
+  } catch (e) {
+    console.warn('[settings] persistPartial failed', e);
+  }
+}
+
 function goBack() {
   // UI-FIX (Android): als het on-screen toetsenbord open is bij Save, kan de
   // visual viewport verschoven blijven waardoor topbar + nav buiten beeld
@@ -146,10 +162,12 @@ export function applyColorblind(on) {
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────────
-export function renderSettings() {
+export function renderSettings(override) {
   const screen = document.getElementById('screen-setup');
   if (!screen) return;
-  const s  = loadSettings();
+  // PERSISTENTIE-FIX: override = actuele formulierwaarden, zodat een
+  // her-render (bv. na taalwissel) geen onbewaarde wijzigingen wist.
+  const s  = override ?? loadSettings();
   const lc = getLicenceClass(s.licenceClass);
 
   screen.innerHTML = buildHTML(s, lc);
@@ -385,13 +403,24 @@ function bindEvents(initial, initialLc) {
   });
 
   document.querySelectorAll('input[name="s-theme"]').forEach(r => {
-    r.addEventListener('change', () => { if (r.checked) applyTheme(r.value); });
+    r.addEventListener('change', () => {
+      if (!r.checked) return;
+      applyTheme(r.value);
+      persistPartial({ theme: r.value }); // PERSISTENTIE-FIX: direct bewaren
+    });
   });
 
   document.getElementById('s-lang')?.addEventListener('change', async e => {
-    await loadLang(e.target.value);
+    // PERSISTENTIE-FIX: voorheen her-renderde dit het formulier vanuit de
+    // OPGESLAGEN settings — alle onbewaarde wijzigingen (radio, grid, én de
+    // taalkeuze zelf) sprongen terug. Taal was daardoor nooit te wijzigen.
+    const current = collectForm();
+    current.language = e.target.value;
+    persistPartial({ language: current.language });
+    state.user.language = current.language;
+    await loadLang(current.language);
     applyToDOM();
-    renderSettings();
+    renderSettings(current); // her-render mét behoud van formulierwaarden
   });
 
   document.getElementById('s-save')?.addEventListener('click', () => {
