@@ -69,6 +69,10 @@
         <div class="legend-row"><span class="legend-swatch" style="background:var(--score-closed)"></span><span data-i18n="score.closed">Closed</span></div>
       </div>
 
+      <button id="btn-wspr" class="map-overlay-btn" aria-pressed="false" title="WSPR">
+        <span aria-hidden="true">📡</span> <span data-i18n="wspr.btn">WSPR</span>
+      </button>
+
       <div id="map-disclaimer" data-i18n="map.disclaimer">⚠ Theoretical model — verify against real conditions</div>
 
       <!-- Loading overlay -->
@@ -105,6 +109,10 @@
         <div class="cond-item">
           <span class="cond-label" data-i18n="conditions.sfi">SFI</span>
           <span id="cond-sfi-detail" class="cond-value">—</span>
+        </div>
+        <div class="cond-item">
+          <span class="cond-label" data-i18n="conditions.wsprmuf">WSPR-MUF</span>
+          <span id="cond-wsprmuf-detail" class="cond-value">—</span>
         </div>
         <div class="cond-item">
           <span class="cond-label" data-i18n="conditions.band">Band</span>

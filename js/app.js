@@ -22,6 +22,7 @@ import { updateListview, updateByBand,
 import { updateOpening }               from './opening.js';
 import { buildCache, invalidateCache }  from './cache.js';
 import { gridToLatLon }                from './utils.js';
+import { initWspr, updateWsprMuf }      from './wspr.js';
 import { openDrilldown, init as initDrilldown } from './drilldown.js';
 
 const NOAA_REFRESH_MS = 15 * 60 * 1000;
@@ -103,6 +104,9 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
   // 9. Tijdlijn
   initTimeline();
 
+  // 9b. WSPR-realiteitslaag (wspr.live) — knop, band-hook, MUF-badge
+  try { initWspr(); } catch (e) { console.warn('[app] wspr init', e); }
+
   // 10. Score cache bouwen
   showGlobalLoading(true, t('ui.building_cache'));
   await buildCache(features, (pct, label) => updateLoadingProgress(pct, label));
@@ -140,6 +144,7 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
       await fetchNoaa();
       updateConditionsUI();
       updateAlertsUI();
+      updateWsprMuf(); // empirische MUF mee-verversen (async, niet-blokkerend)
       await buildCache(features, null);
       state.scoreCacheBuilt = true;
       rebuild();

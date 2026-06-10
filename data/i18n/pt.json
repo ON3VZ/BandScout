@@ -188,5 +188,10 @@
   "toast.settings.saved": "Configurações salvas",
   "ui.help": "Ajuda",
   "help.section_title": "Glossário de propagação",
-  "ui.rendering_map": "Mapa de propagação pronto — um momento…"
+  "ui.rendering_map": "Mapa de propagação pronto — um momento…",
+  "wspr.btn": "WSPR",
+  "wspr.tip": "Spots WSPR reais (últimas 2 h) à volta do teu locator — realidade medida ao lado do modelo",
+  "wspr.none": "Sem spots WSPR nesta banda neste momento",
+  "wspr.error": "wspr.live indisponível",
+  "conditions.wsprmuf": "MUF-WSPR"
 }

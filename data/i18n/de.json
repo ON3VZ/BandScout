@@ -188,5 +188,10 @@
   "toast.settings.saved": "Einstellungen gespeichert",
   "ui.help": "Hilfe",
   "help.section_title": "Ausbreitungs-Glossar",
-  "ui.rendering_map": "Ausbreitungskarte bereit — einen Moment bitte…"
+  "ui.rendering_map": "Ausbreitungskarte bereit — einen Moment bitte…",
+  "wspr.btn": "WSPR",
+  "wspr.tip": "Echte WSPR-Spots (letzte 2 Std.) rund um deinen Locator — gemessene Realität neben dem Modell",
+  "wspr.none": "Derzeit keine WSPR-Spots auf diesem Band",
+  "wspr.error": "wspr.live nicht erreichbar",
+  "conditions.wsprmuf": "WSPR-MUF"
 }

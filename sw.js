@@ -7,7 +7,7 @@
  *  - Leaflet tiles:                Cache-first (stale-while-revalidate)
  */
 
-const APP_VERSION   = 'v1.7.0';
+const APP_VERSION   = 'v1.8.0';
 const SHELL_CACHE   = `hfbs-shell-${APP_VERSION}`;
 const TILE_CACHE    = `hfbs-tiles-${APP_VERSION}`;
 const NOAA_CACHE    = `hfbs-noaa-${APP_VERSION}`;
@@ -42,6 +42,7 @@ const SHELL_ASSETS = [
   './js/opening.js',
   './js/settings.js',
   './js/cache.js',
+  './js/wspr.js',
   './js/bandplan.js',
   './data/dxcc.geojson',
   './data/radio-profiles.json',
@@ -57,6 +58,11 @@ const SHELL_ASSETS = [
 
 const NOAA_ORIGINS = [
   'https://services.swpc.noaa.gov',
+];
+
+// Live-data origins die NOOIT gecachet mogen worden (altijd netwerk)
+const LIVE_ONLY_ORIGINS = [
+  'https://db1.wspr.live',
 ];
 
 const TILE_ORIGINS = [
@@ -104,6 +110,12 @@ self.addEventListener('fetch', event => {
   // NOAA API → network-first with cache fallback + TTL
   if (NOAA_ORIGINS.some(o => url.origin === o)) {
     event.respondWith(noaaStrategy(request));
+    return;
+  }
+
+  // Live-data (wspr.live) → altijd netwerk, nooit cachen
+  if (LIVE_ONLY_ORIGINS.some(o => url.origin === o)) {
+    event.respondWith(fetch(request));
     return;
   }
 

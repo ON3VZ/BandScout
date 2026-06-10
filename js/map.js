@@ -394,6 +394,7 @@ export function renderBandSelector() {
         renderBandSelector();
         renderScores();
         updateBandDisplay();
+        window.dispatchEvent(new CustomEvent('hfbs:band-changed', { detail: band }));
       });
     }
 
