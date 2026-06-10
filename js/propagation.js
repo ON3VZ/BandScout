@@ -444,15 +444,38 @@ export function calcReliability(params) {
   // Step 1 — Distance
   const distKm = params.distKm ?? haversineKmInternal(txLat, txLon, rxLat, rxLon);
 
-  // Step 2 — Solar elevations
+  // Step 2 — Solar elevations (eindpunten + pad-controlepunten)
+  // FIX A3 (fase 2): MUF en D-laag werden op de EINDPUNTEN geëvalueerd, met
+  // max(elevTx, elevRx) als dagproxy. Gevolg: een 9300 km pad naar JA om
+  // 00:00 UTC kreeg dag-MUF omdat de zon in Tokio op was, terwijl het pad
+  // grotendeels door de nacht loopt. Nu: controlepunten langs de great
+  // circle; de F2-MUF wordt gegated door het ZWAKSTE segment (min-elevatie),
+  // D-laagabsorptie door het sterkst belichte punt (max-elevatie).
   let elevTx = 0, elevRx = 0;
+  let pathElevs = [0];
   if (typeof SunCalc !== 'undefined') {
-    elevTx = SunCalc.getPosition(time, txLat, txLon).altitude * (180 / Math.PI);
-    elevRx = SunCalc.getPosition(time, rxLat, rxLon).altitude * (180 / Math.PI);
+    const elevAt = (la, lo) =>
+      SunCalc.getPosition(time, la, lo).altitude * (180 / Math.PI);
+    elevTx = elevAt(txLat, txLon);
+    elevRx = elevAt(rxLat, rxLon);
+    pathElevs = [elevTx, elevRx];
+    if (distKm >= 2000) {
+      // Controlepunten op ~1500 km van elk eind + het padmidden
+      const fEdge = Math.min(0.45, 1500 / distKm);
+      for (const f of [fEdge, 0.5, 1 - fEdge]) {
+        const p = greatCirclePoint(txLat, txLon, rxLat, rxLon, f);
+        pathElevs.push(elevAt(p.lat, p.lon));
+      }
+    } else if (distKm >= 500) {
+      const mid = greatCirclePoint(txLat, txLon, rxLat, rxLon, 0.5);
+      pathElevs.push(elevAt(mid.lat, mid.lon));
+    }
   }
+  const minPathElev = Math.min(...pathElevs);
+  const maxPathElev = Math.max(...pathElevs);
 
-  // Step 3 — MUF gate
-  const muf  = estimateMUF(sfi, distKm, Math.max(elevTx, elevRx));
+  // Step 3 — MUF gate (zwakste segment bepaalt de F2-reflectie)
+  const muf  = estimateMUF(sfi, distKm, minPathElev);
   const gate = bandStatus(bandFreq, muf);
 
   if (gate.score === 0) {
@@ -484,8 +507,8 @@ export function calcReliability(params) {
   // Step 5 — Kp degradation
   rel *= kpFactor(band, kp);
 
-  // Step 6 — D-layer absorption
-  rel *= bandAbsorptionPenalty(band, elevTx, elevRx);
+  // Step 6 — D-layer absorption (sterkst belichte punt op het pad — fix A3)
+  rel *= bandAbsorptionPenalty(band, maxPathElev, maxPathElev);
 
   // Step 7 — Greyline detection (bonus wordt pas NA multihop opgeteld — fix A4)
   let isTxGL = false, isRxGL = false;
@@ -582,6 +605,31 @@ export function buildReasonString(band, score, details, sfi, kp) {
 // ─────────────────────────────────────────────
 // Internal helper (duplicate of utils to keep propagation.js self-contained)
 // ────────────────────────────────────────────
+
+/**
+ * Great-circle tussenpunt (spherical interpolation).
+ * f = 0 → punt 1, f = 1 → punt 2.
+ * @returns {{ lat: number, lon: number }}
+ */
+export function greatCirclePoint(lat1, lon1, lat2, lon2, f) {
+  const toRad = Math.PI / 180, toDeg = 180 / Math.PI;
+  const φ1 = lat1 * toRad, λ1 = lon1 * toRad;
+  const φ2 = lat2 * toRad, λ2 = lon2 * toRad;
+  const Δ = 2 * Math.asin(Math.sqrt(
+    Math.sin((φ2 - φ1) / 2) ** 2 +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin((λ2 - λ1) / 2) ** 2
+  ));
+  if (Δ < 1e-9) return { lat: lat1, lon: lon1 };
+  const A = Math.sin((1 - f) * Δ) / Math.sin(Δ);
+  const B = Math.sin(f * Δ) / Math.sin(Δ);
+  const x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2);
+  const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2);
+  const z = A * Math.sin(φ1) + B * Math.sin(φ2);
+  return {
+    lat: Math.atan2(z, Math.sqrt(x * x + y * y)) * toDeg,
+    lon: Math.atan2(y, x) * toDeg,
+  };
+}
 
 function haversineKmInternal(lat1, lon1, lat2, lon2) {
   const R = 6371;

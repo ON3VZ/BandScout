@@ -62,7 +62,8 @@ export async function fetchAll() {
     state.noaa = {
       kp,
       sfi,
-      kpForecast: forecast,
+      kpForecast:      forecast?.values ?? [],
+      kpForecastStart: forecast?.startMs ?? null,
       alerts,
       fetchedAt: Date.now(),
       stale: false,
@@ -80,6 +81,7 @@ export async function fetchAll() {
         kp:  2,
         sfi: 100,
         kpForecast: [],
+        kpForecastStart: null,
         alerts: [],
         fetchedAt: null,
         stale: true,
@@ -146,12 +148,24 @@ export async function testEndpoint(endpoint) {
  * @returns {number} Kp value
  */
 export function getKpAtStep(step) {
+  // FIX A5 (fase 2): voorheen werd floor(step/6) vanaf "nu" gebruikt, maar
+  // de NOAA-forecast is gealigneerd op vaste 3-uurs UTC-synoptische slots
+  // (00–03, 03–06, …). Nu: bereken het absolute UTC-tijdstip van de stap en
+  // index in de forecast vanaf kpForecastStart (middernacht UTC dag 1).
   const current = state.noaa.kp ?? 2;
-  if (!state.noaa.kpForecast.length || step < 4) return current;
-  // Each forecast entry covers 3 hours = 6 steps
-  const forecastIdx = Math.floor(step / 6);
-  const fc = state.noaa.kpForecast;
-  return fc[Math.min(forecastIdx, fc.length - 1)] ?? current;
+  const fc      = state.noaa.kpForecast ?? [];
+  const startMs = state.noaa.kpForecastStart;
+  if (!fc.length || startMs == null) return current;
+
+  const stepMs  = Date.now() + step * 30 * 60 * 1000;
+  const slotIdx = Math.floor((stepMs - startMs) / (3 * 60 * 60 * 1000));
+  if (slotIdx < 0) return current;
+
+  // Binnen het huidige 3-uurs slot wint de real-time meting van de forecast
+  const nowSlot = Math.floor((Date.now() - startMs) / (3 * 60 * 60 * 1000));
+  if (slotIdx === nowSlot) return current;
+
+  return fc[Math.min(slotIdx, fc.length - 1)] ?? current;
 }
 
 // ── UI updates ──
@@ -262,19 +276,69 @@ async function fetchAlerts() {
  * @returns {number[]}
  */
 function parseForecastText(text) {
-  const values = [];
-  const lines  = text.split('\n');
+  // FIX A5 (fase 2): het live NOAA-formaat is rijen = 3-uurs UT-slots,
+  // kolommen = dagen ("00-03UT   3.67   2.00   3.67"). De oude regex
+  // (^Month DD  n n n…$) matchte hier NIETS op — kpForecast was in
+  // productie dus altijd leeg en de forecast werd nooit gebruikt.
+  // Output: { values: number[24] chronologisch, startMs: epoch van
+  // middernacht UTC van de eerste forecastdag }.
+  const lines = text.split('\n');
 
+  const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5,
+                   Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+
+  // 1. Kolomheader vinden: "             Jun 10    Jun 11    Jun 12"
+  let dayDates = [];
   for (const line of lines) {
-    // Look for lines with pattern: "Month DD  N N N N N N N N"
-    const match = line.match(/^[A-Z][a-z]+\s+\d+\s+([\d\s]+)$/);
-    if (match) {
-      const nums = match[1].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
-      values.push(...nums);
+    const m = line.match(/^\s+([A-Z][a-z]{2})\s+(\d{1,2})\s+([A-Z][a-z]{2})\s+(\d{1,2})\s+([A-Z][a-z]{2})\s+(\d{1,2})\s*$/);
+    if (m) {
+      const now = new Date();
+      const mkDate = (mon, day) => {
+        let year = now.getUTCFullYear();
+        // Jaarovergang: forecast in januari met december-kolom (of omgekeerd)
+        if (MONTHS[mon] === 11 && now.getUTCMonth() === 0) year -= 1;
+        if (MONTHS[mon] === 0  && now.getUTCMonth() === 11) year += 1;
+        return Date.UTC(year, MONTHS[mon], parseInt(day, 10));
+      };
+      dayDates = [mkDate(m[1], m[2]), mkDate(m[3], m[4]), mkDate(m[5], m[6])];
+      break;
     }
   }
 
-  return values; // up to 24 values (3 days × 8 three-hourly periods)
+  // 2. Slot-rijen parsen: "00-03UT   3.67   2.00   3.67"
+  const matrix = {}; // slotIdx (0–7) → [dag1, dag2, dag3]
+  for (const line of lines) {
+    const m = line.match(/^(\d{2})-\d{2}UT\s+(.+)$/);
+    if (!m) continue;
+    const slotIdx = Math.floor(parseInt(m[1], 10) / 3);
+    const vals = m[2].trim().split(/\s+/)
+      .map(v => parseFloat(v.replace(/[^\d.]/g, '')))
+      .filter(n => !isNaN(n));
+    if (vals.length >= 3) matrix[slotIdx] = vals.slice(0, 3);
+  }
+
+  // 3. Chronologisch afvlakken: dag1 slot0–7, dag2, dag3
+  const values = [];
+  for (let day = 0; day < 3; day++) {
+    for (let slot = 0; slot < 8; slot++) {
+      if (matrix[slot]?.[day] !== undefined) values.push(matrix[slot][day]);
+    }
+  }
+
+  // Fallback op legacy-formaat ("May 01  3 3 4 3 2 2 1 1")
+  if (values.length === 0) {
+    for (const line of lines) {
+      const m = line.match(/^[A-Z][a-z]+\s+\d+\s+([\d\s]+)$/);
+      if (m) {
+        const nums = m[1].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+        values.push(...nums);
+      }
+    }
+    const today = new Date();
+    return { values, startMs: Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) };
+  }
+
+  return { values, startMs: dayDates[0] ?? null };
 }
 
 // ── Cache ──
@@ -284,7 +348,8 @@ function saveCache() {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       kp:          state.noaa.kp,
       sfi:         state.noaa.sfi,
-      kpForecast:  state.noaa.kpForecast,
+      kpForecast:      state.noaa.kpForecast,
+      kpForecastStart: state.noaa.kpForecastStart ?? null,
       alerts:      state.noaa.alerts,
       fetchedAt:   state.noaa.fetchedAt,
     }));
@@ -299,7 +364,8 @@ function loadCache() {
   state.noaa = {
     kp:          cached.kp   ?? 2,
     sfi:         cached.sfi  ?? 100,
-    kpForecast:  cached.kpForecast ?? [],
+    kpForecast:      cached.kpForecast ?? [],
+    kpForecastStart: cached.kpForecastStart ?? null,
     alerts:      cached.alerts ?? [],
     fetchedAt:   cached.fetchedAt ?? null,
     stale:       true,

@@ -130,7 +130,7 @@ function renderScoresTable(props, rxLat, rxLon) {
   const container = document.getElementById('drilldown-scores');
   if (!container) return;
 
-  const bands   = getActiveBands(state.user.licenseClass);
+  const bands   = getActiveBands(); // UI-FIX: fallback-keten in state.js (licenceClass eerst)
   const step    = state.activeTimeOffset;
   const id      = props.dxcc_id;
   const sfi     = state.noaa.sfi ?? 100;

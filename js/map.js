@@ -374,7 +374,7 @@ export function renderBandSelector() {
   if (!container) return;
 
   const allBands = ['160m','80m','40m','30m','20m','17m','15m','12m','10m','6m'];
-  const accessible = getActiveBands(state.user.licenseClass);
+  const accessible = getActiveBands(); // UI-FIX: fallback-keten in state.js (licenceClass eerst)
 
   container.innerHTML = '';
 

@@ -226,25 +226,26 @@
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding: 0 var(--space-2);
-  height: 40px;
+  height: 52px; /* UI-FIX: was 40px — min. 44px touch target + leesbaarheid */
 }
 
 #band-selector::-webkit-scrollbar { display: none; }
 
 .band-tab {
   flex-shrink: 0;
-  padding: 0 var(--space-3);
-  height: 40px;
-  font-size: var(--font-size-sm);
+  padding: 0 var(--space-4);
+  height: 52px;            /* UI-FIX: 44px+ touch target */
+  min-width: 56px;
+  font-size: 15px;          /* UI-FIX: was 12px — onleesbaar op mobiel */
   font-weight: var(--font-weight-medium);
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-  border-bottom: 2px solid transparent;
+  color: var(--text-primary); /* UI-FIX: was secondary — te laag contrast */
+  border-bottom: 3px solid transparent;
   white-space: nowrap;
   transition: color var(--transition-fast), border-color var(--transition-fast);
 }
@@ -254,12 +255,15 @@
 .band-tab.active {
   color: var(--accent-primary);
   border-bottom-color: var(--accent-primary);
+  font-weight: 700;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .band-tab:disabled {
   color: var(--text-muted);
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.45;
+  font-size: 13px; /* niet-toegankelijke banden visueel ondergeschikt maar leesbaar */
 }
 
 /* ── Conditions bar ── */

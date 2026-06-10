@@ -4,7 +4,7 @@
  */
 
 import { state }                         from './state.js';
-import { loadSettings, applyTheme,
+import { loadSettings, applyTheme, applyToState,
          applyColorblind, SETTINGS_KEY } from './settings.js';
 import { renderSettings }               from './settings.js';
 import { load as loadI18n,
@@ -43,7 +43,13 @@ const SCREEN_ORDER    = ['map', 'by-band', 'by-region', 'opening', 'setup'];
   await loadI18n(lang);
   applyToDOM();
 
-  // 3. Lat/lon uit grid
+  // 3. Settings → state
+  // UI-FIX: voorheen werden alleen thema/taal/grid toegepast bij boot;
+  // licentieklasse, vermogen en mode bleven op de defaults (A/100W/FT8)
+  // staan tot de gebruiker opnieuw op Save drukte. Nu volledige sync.
+  applyToState(settings);
+
+  // 3b. Lat/lon uit grid
   if (settings.grid) {
     try {
       const { lat, lon } = gridToLatLon(settings.grid);
@@ -253,6 +259,11 @@ export function switchScreen(name) {
   }
 
   currentScreen = name;
+
+  // Defensief (Android): viewport-scroll resetten zodat topbar/nav zichtbaar zijn
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 
   // Scherm-specifieke renders
   if (name === 'setup')     renderSettings();

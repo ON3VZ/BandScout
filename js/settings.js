@@ -102,15 +102,27 @@ export function saveSettings(data) {
 }
 
 function goBack() {
+  // UI-FIX (Android): als het on-screen toetsenbord open is bij Save, kan de
+  // visual viewport verschoven blijven waardoor topbar + nav buiten beeld
+  // staan ("map zonder menuknoppen"). Eerst blur (toetsenbord dicht), dan
+  // alle scrollposities hard naar 0.
+  try { document.activeElement?.blur?.(); } catch { /* ignore */ }
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
   if (typeof window.hfbsSwitchScreen === 'function') {
     window.hfbsSwitchScreen('map');
   }
 }
 
-function applyToState(d) {
+export function applyToState(d) {
   state.user.callsign     = d.callsign     ?? '';
   state.user.grid         = d.grid         ?? '';
   state.user.licenceClass = d.licenceClass ?? 'novice_be';
+  // UI-FIX: map.js/drilldown.js lazen state.user.licenseClass (US-spelling)
+  // die nooit werd bijgewerkt — bandfiltering stond daardoor ALTIJD op 'A'.
+  // Beide spellingen synchroon houden tot alle lezers zijn gemigreerd.
+  state.user.licenseClass = d.licenceClass ?? 'novice_be';
   state.user.radioModel   = d.radioModel   ?? 'icom-7300';
   state.user.txPowerW       = Number(d.txPowerW ?? 25);
   state.user.mode         = d.mode         ?? 'ssb';
