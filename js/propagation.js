@@ -347,12 +347,20 @@ export function applyF2Gradient(reliability, distanceKm, sfi, solarElevTx) {
 // 9. Sporadic-E model
 // ─────────────────────────────────────────────
 
-/** Maximum Es probability per band */
+/**
+ * Maximum Es probability per band — Es-v2.
+ * P(Es-MUF > f) daalt monotoon met frequentie. De oude tabel ('6m' hoogst,
+ * 20m/17m ontbraken) codeerde "relevantie", niet kans — waardoor intra-EU
+ * 20m in het Es-seizoen donkerrood kleurde terwijl WSPR duizenden echte
+ * spots op 500–2000 km toonde.
+ */
 const ES_BANDS = {
-  '6m':  0.40,
-  '10m': 0.25,
-  '12m': 0.10,
-  '15m': 0.05,
+  '20m': 0.40,
+  '17m': 0.35,
+  '15m': 0.30,
+  '12m': 0.25,
+  '10m': 0.22,
+  '6m':  0.12,
 };
 
 /** NH peak months (May, June, July) */
@@ -376,17 +384,20 @@ export function esBonus(band, month, distanceKm, lat, localHour = 15) {
   const basePct = ES_BANDS[band];
   if (!basePct) return 0;
 
-  // Distance gate: Es paths are typically 800–2500 km
-  if (distanceKm < 800 || distanceKm > 2600) return 0;
+  // Distance gate: single-hop Es draagt ~600–2600 km (WSPR-data toont de
+  // grootste spotdichtheid in de 500–1000 km-bucket)
+  if (distanceKm < 600 || distanceKm > 2600) return 0;
 
   const isNHPeak = lat >= 0 && ES_NH_MONTHS.has(month);
   const isSHPeak = lat <  0 && ES_SH_MONTHS.has(month);
   const seasonFactor = (isNHPeak || isSHPeak) ? 1.0 : 0.2;
 
-  // FASE 3: dagfactor — Es piekt rond late ochtend en vroege avond en is
-  // 's nachts zeldzaam. Cosinus rond 15:00 lokale zonnetijd: 1.0 om 15:00,
-  // ~0.3 om 03:00. Voorheen kleurde 10m-Es ook om 03:00 's nachts.
-  const diurnal = 0.3 + 0.7 * Math.max(0, Math.cos((localHour - 15) * Math.PI / 12));
+  // Es-v2: DUBBELE dagpiek — klassiek rond ~11:00 en ~19:00 lokale
+  // zonnetijd (padmidden), met een lichte middagdip en een lage maar niet
+  // nul nachtbodem. De oude enkele piek om 15:00 doofde de werkelijke
+  // avond-Es (die WSPR live laat zien) veel te hard uit.
+  const bump = (peak) => Math.max(0, Math.cos((localHour - peak) * Math.PI / 10));
+  const diurnal = 0.25 + 0.75 * Math.max(bump(11), bump(19));
 
   return basePct * seasonFactor * diurnal;
 }
@@ -583,9 +594,12 @@ export function calcReliability(params) {
   // bonus overeind op lange-pad greyline-DX.
   rel = Math.min(0.99, rel + greylineBonus(band, isTxGL, isRxGL));
 
-  // Step 11 — Sporadic-E bonus (met dagfactor, fase 3)
+  // Step 11 — Sporadic-E (probabilistische OR met het F2-pad, Es-v2)
+  // P(verbinding) = 1 − (1−P_F2)(1−P_Es): Es en F2 zijn onafhankelijke
+  // mechanismen. Additief stapelen telde dubbel bij goede F2-condities.
   const month = time.getUTCMonth() + 1; // 1–12
-  rel = Math.min(0.99, rel + esBonus(band, month, distKm, txLat, localHourMid));
+  const esB = esBonus(band, month, distKm, txLat, localHourMid);
+  rel = Math.min(0.99, rel + esB - rel * esB);
 
   // Step 12 — Clamp to 0–99% for 100W reference
   const score100W = Math.round(Math.max(0, Math.min(99, rel * 100)));

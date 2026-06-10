@@ -7,7 +7,7 @@
  *  - Leaflet tiles:                Cache-first (stale-while-revalidate)
  */
 
-const APP_VERSION   = 'v1.10.0';
+const APP_VERSION   = 'v1.11.0';
 const SHELL_CACHE   = `hfbs-shell-${APP_VERSION}`;
 const TILE_CACHE    = `hfbs-tiles-${APP_VERSION}`;
 const NOAA_CACHE    = `hfbs-noaa-${APP_VERSION}`;
