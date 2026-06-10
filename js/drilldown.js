@@ -296,7 +296,7 @@ function renderBandPlan(props) {
   const container = document.getElementById('drilldown-bandplan');
   if (!container) return;
 
-  const region  = props.itu_zone ? iauRegionFromITUZone(props.itu_zone) : (state.user.iauRegion ?? 1);
+  const region  = (props.lon !== undefined) ? iauRegionFromLon(props.lon) : (state.user.iauRegion ?? 1);
   const band    = state.activeBand;
   const rows    = getBandPlanSnippet(region, band); // returns array of {mode, freqStr, note?, highlighted?}
 
@@ -378,11 +378,15 @@ function getConditionKeyLegacy(band, kp) {
   return `${noise}_${kpPart}`;
 }
 
-function iauRegionFromITUZone(ituZone) {
-  // Rough mapping: zones 1-6 EU/AF, 7-15 AS/OC, 16-27 Americas
-  if (ituZone >= 16 && ituZone <= 27) return 2; // Americas
-  if (ituZone >= 7  && ituZone <= 15) return 3; // Asia/Pacific (approx)
-  return 1;
+/**
+ * IARU-regio uit de centroid-lengtegraad (betrouwbaar), met ITU-zone als
+ * noodfallback. BUG-FIX: de oude zone-mapping ("16–27 = Amerika's") was
+ * onjuist — België is ITU-zone 27 en kreeg daardoor Region 2.
+ */
+function iauRegionFromLon(lon) {
+  if (lon >= -170 && lon <= -30) return 2; // Amerika's
+  if (lon >= 60   && lon <= 180) return 3; // Azië-Pacific
+  return 1;                                 // Europa/Afrika/Midden-Oosten
 }
 
 function formatFreq(freq) {
