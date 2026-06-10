@@ -203,5 +203,6 @@
   "drilldown.radio.cond.storm": "Geomagnetische storm",
   "settings.qrm": "Lokaal stoorniveau (QRM)",
   "settings.qrm_low": "Laag — landelijk / rustige QTH",
-  "settings.qrm_high": "Hoog — stedelijk / veel QRM"
+  "settings.qrm_high": "Hoog — stedelijk / veel QRM",
+  "api.wspr": "wspr.live (echte spots)"
 }

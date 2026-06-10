@@ -202,5 +202,6 @@
   "drilldown.radio.cond.storm": "Orage géomagnétique",
   "settings.qrm": "Niveau de bruit local (QRM)",
   "settings.qrm_low": "Faible — rural / QTH calme",
-  "settings.qrm_high": "Élevé — urbain / fort QRM"
+  "settings.qrm_high": "Élevé — urbain / fort QRM",
+  "api.wspr": "wspr.live (spots réels)"
 }

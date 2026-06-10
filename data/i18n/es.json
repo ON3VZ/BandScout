@@ -202,5 +202,6 @@
   "drilldown.radio.cond.storm": "Tormenta geomagnética",
   "settings.qrm": "Nivel de ruido local (QRM)",
   "settings.qrm_low": "Bajo — rural / QTH tranquilo",
-  "settings.qrm_high": "Alto — urbano / mucho QRM"
+  "settings.qrm_high": "Alto — urbano / mucho QRM",
+  "api.wspr": "wspr.live (spots reales)"
 }

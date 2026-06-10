@@ -202,5 +202,6 @@
   "drilldown.radio.cond.storm": "Geomagnetischer Sturm",
   "settings.qrm": "Lokaler Störpegel (QRM)",
   "settings.qrm_low": "Niedrig — ländlich / ruhiges QTH",
-  "settings.qrm_high": "Hoch — städtisch / starkes QRM"
+  "settings.qrm_high": "Hoch — städtisch / starkes QRM",
+  "api.wspr": "wspr.live (echte Spots)"
 }

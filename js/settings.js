@@ -475,11 +475,11 @@ function validate(data) {
 
 // ─── API health ───────────────────────────────────────────────────────────────
 const ENDPOINTS = [
-  { name: 'wspr.live', url: 'https://db1.wspr.live/?query=' + encodeURIComponent('SELECT 1 FORMAT JSON') },
   { id: 'sfi',      label: 'api.sfi',      url: 'https://services.swpc.noaa.gov/json/f107_cm_flux.json' },
   { id: 'kp',       label: 'api.kp',       url: 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json' },
   { id: 'forecast', label: 'api.forecast', url: 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json' },
   { id: 'alerts',   label: 'api.alerts',   url: 'https://services.swpc.noaa.gov/products/alerts.json' },
+  { id: 'wspr',     label: 'api.wspr',     url: 'https://db1.wspr.live/?query=' + encodeURIComponent('SELECT 1 FORMAT JSON') },
 ];
 
 async function runApiHealth() {
