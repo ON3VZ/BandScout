@@ -221,52 +221,71 @@ function renderRadioSettings() {
     return;
   }
 
-  const profile = state.radioProfiles?.[radioKey];
-  const band    = state.activeBand;
-  const bandProfile = profile?.bands?.[band];
+  // Alias-resolutie (bv. icom-7300-mk2 → icom-7300)
+  let profile = state.radioProfiles?.[radioKey];
+  let displayName = profile?.name ?? radioKey;
+  if (profile?.alias) {
+    displayName = profile.name ?? displayName;
+    profile = state.radioProfiles?.[profile.alias];
+  }
 
-  const kp = state.noaa.kp ?? 2;
-  const condKey = getConditionKey(band, kp);
-  const settings = bandProfile?.[condKey] ?? bandProfile?.['noise_low_kp_low'];
+  const band        = state.activeBand;
+  const bandProfile = profile?.bands?.[band];
+  const kp          = state.noaa.kp ?? 2;
+  const isV2        = profile?.schema === 2;
+
+  let settings, condKey, condLabel;
+  if (isV2) {
+    condKey = getConditionKey2(band);
+    const entry = bandProfile?.[condKey] ?? bandProfile?.['quiet'];
+    if (entry) {
+      const grp = entry[modeGroup()] ?? entry['ssb'] ?? {};
+      settings = { ...(entry.common ?? {}), ...grp, note: entry.note };
+    }
+    condLabel = t('drilldown.radio.cond.' + condKey);
+  } else {
+    condKey  = getConditionKeyLegacy(band, kp);
+    settings = bandProfile?.[condKey] ?? bandProfile?.['noise_low_kp_low'];
+    condLabel = '';
+  }
 
   if (!settings) {
     container.innerHTML = `
       <div class="radio-settings-header">
         <h3>${t('drilldown.radio.title')}</h3>
-        <span class="radio-model-name">${profile?.name ?? radioKey}</span>
+        <span class="radio-model-name">${displayName}</span>
       </div>
       <p style="font-size:var(--font-size-sm);color:var(--text-muted)">No settings for ${band}</p>
     `;
     return;
   }
 
+  const row = (labelKey, value) => value ? `
+      <div class="radio-param">
+        <span class="radio-param-label">${t(labelKey)}</span>
+        <span class="radio-param-value">${value}</span>
+      </div>` : '';
+
+  const modeTag = isV2
+    ? `<span class="radio-cond-chip">${condLabel}</span><span class="radio-cond-chip radio-mode-chip">${String(state.user.mode ?? 'ssb').toUpperCase()}</span>`
+    : '';
+
   container.innerHTML = `
     <div class="radio-settings-header">
       <h3>${t('drilldown.radio.title')}</h3>
-      <span class="radio-model-name">${profile?.name ?? radioKey}</span>
+      <span class="radio-model-name">${displayName}</span>
     </div>
+    ${modeTag ? `<div class="radio-cond-row">${modeTag}</div>` : ''}
     <div class="radio-settings-grid">
-      <div class="radio-param">
-        <span class="radio-param-label">${t('drilldown.radio.preamp')}</span>
-        <span class="radio-param-value">${settings.preamp ?? '—'}</span>
-      </div>
-      <div class="radio-param">
-        <span class="radio-param-label">${t('drilldown.radio.nb')}</span>
-        <span class="radio-param-value">${settings.nb ?? '—'}</span>
-      </div>
-      <div class="radio-param">
-        <span class="radio-param-label">${t('drilldown.radio.filter')}</span>
-        <span class="radio-param-value">${settings.filter ?? '—'}</span>
-      </div>
-      <div class="radio-param">
-        <span class="radio-param-label">${t('drilldown.radio.agc')}</span>
-        <span class="radio-param-value">${settings.agc ?? '—'}</span>
-      </div>
-      ${settings.squelch ? `
-      <div class="radio-param">
-        <span class="radio-param-label">${t('drilldown.radio.squelch')}</span>
-        <span class="radio-param-value">${settings.squelch}</span>
-      </div>` : ''}
+      ${row('drilldown.radio.preamp', settings.preamp)}
+      ${row('drilldown.radio.att',    settings.att)}
+      ${row('drilldown.radio.rfgain', settings.rfgain)}
+      ${row('drilldown.radio.nb',     settings.nb)}
+      ${row('drilldown.radio.nr',     settings.nr)}
+      ${row('drilldown.radio.filter', settings.filter)}
+      ${row('drilldown.radio.agc',    settings.agc)}
+      ${row('drilldown.radio.ipplus', settings.ipplus)}
+      ${row('drilldown.radio.squelch', settings.squelch)}
     </div>
     ${settings.note ? `<p class="radio-note">${settings.note}</p>` : ''}
     <p class="radio-disclaimer">⚠ ${t('drilldown.radio.disclaimer')}</p>
@@ -325,12 +344,38 @@ function renderActions(props, azDeg) {
 // Helpers
 // ─────────────────────────────────────────────
 
-function getConditionKey(band, kp) {
-  if (kp >= 4) return 'kp_high';
-  // Rough summer noise estimate for low bands
+/**
+ * Conditie-engine v2 (schema 2): quiet | qrm | storm.
+ * BUG-FIX: de oude versie gaf bij Kp >= 4 'kp_high' terug — een key die in
+ * geen enkel profiel bestond ('noise_low_kp_high' wél), dus storm-settings
+ * werden nooit getoond.
+ * Meegewogen: Kp, lokaal QRM-niveau (instelling), zomerse statiek op de
+ * lage banden (mei–sep).
+ */
+function getConditionKey2(band) {
+  const kp = state.noaa.kp ?? 2;
+  if (kp >= 4) return 'storm';
+  const month = new Date().getUTCMonth() + 1;
+  const summerStatic = ['160m','80m','40m'].includes(band) && month >= 5 && month <= 9;
+  const userQrm = (state.user.qrmLevel ?? 'low') === 'high';
+  return (userQrm || summerStatic) ? 'qrm' : 'quiet';
+}
+
+/** Mode → settingsgroep in het v2-profiel */
+function modeGroup() {
+  const m = String(state.user.mode ?? 'ssb').toLowerCase();
+  if (['ft8','ft4','jt65','msk144','psk','rtty'].includes(m)) return 'digi';
+  if (m === 'cw') return 'cw';
+  return 'ssb';
+}
+
+/** Legacy-mapping voor profielen met het oude schema */
+function getConditionKeyLegacy(band, kp) {
   const month = new Date().getUTCMonth() + 1;
   const summerNoise = ['80m','40m','160m'].includes(band) && month >= 5 && month <= 9;
-  return summerNoise ? 'noise_high_kp_low' : 'noise_low_kp_low';
+  const noise = ((state.user.qrmLevel ?? 'low') === 'high' || summerNoise) ? 'noise_high' : 'noise_low';
+  const kpPart = kp >= 4 ? 'kp_high' : 'kp_low';
+  return `${noise}_${kpPart}`;
 }
 
 function iauRegionFromITUZone(ituZone) {

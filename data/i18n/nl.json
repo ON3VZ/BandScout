@@ -194,5 +194,14 @@
   "wspr.tip": "Echte WSPR-spots (laatste 2 u) rond jouw grid — gemeten werkelijkheid naast het model",
   "wspr.none": "Momenteel geen WSPR-spots op deze band",
   "wspr.error": "wspr.live niet bereikbaar",
-  "conditions.wsprmuf": "WSPR-MUF"
+  "conditions.wsprmuf": "WSPR-MUF",
+  "drilldown.radio.att": "ATT",
+  "drilldown.radio.rfgain": "RF-gain",
+  "drilldown.radio.ipplus": "IP+",
+  "drilldown.radio.cond.quiet": "Rustige band",
+  "drilldown.radio.cond.qrm": "QRM / veel ruis",
+  "drilldown.radio.cond.storm": "Geomagnetische storm",
+  "settings.qrm": "Lokaal stoorniveau (QRM)",
+  "settings.qrm_low": "Laag — landelijk / rustige QTH",
+  "settings.qrm_high": "Hoog — stedelijk / veel QRM"
 }

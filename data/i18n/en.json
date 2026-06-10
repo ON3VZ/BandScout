@@ -193,5 +193,14 @@
   "wspr.tip": "Real WSPR spots (last 2 h) around your grid — measured reality next to the model",
   "wspr.none": "No WSPR spots on this band right now",
   "wspr.error": "wspr.live unreachable",
-  "conditions.wsprmuf": "WSPR-MUF"
+  "conditions.wsprmuf": "WSPR-MUF",
+  "drilldown.radio.att": "ATT",
+  "drilldown.radio.rfgain": "RF gain",
+  "drilldown.radio.ipplus": "IP+",
+  "drilldown.radio.cond.quiet": "Quiet band",
+  "drilldown.radio.cond.qrm": "QRM / noisy",
+  "drilldown.radio.cond.storm": "Geomagnetic storm",
+  "settings.qrm": "Local noise level (QRM)",
+  "settings.qrm_low": "Low — rural / quiet QTH",
+  "settings.qrm_high": "High — urban / strong QRM"
 }

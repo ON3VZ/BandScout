@@ -193,5 +193,14 @@
   "wspr.tip": "Spot WSPR reali (ultime 2 ore) attorno al tuo locator — la realtà misurata accanto al modello",
   "wspr.none": "Nessuno spot WSPR su questa banda al momento",
   "wspr.error": "wspr.live non raggiungibile",
-  "conditions.wsprmuf": "MUF-WSPR"
+  "conditions.wsprmuf": "MUF-WSPR",
+  "drilldown.radio.att": "ATT",
+  "drilldown.radio.rfgain": "Guadagno RF",
+  "drilldown.radio.ipplus": "IP+",
+  "drilldown.radio.cond.quiet": "Banda tranquilla",
+  "drilldown.radio.cond.qrm": "QRM / rumorosa",
+  "drilldown.radio.cond.storm": "Tempesta geomagnetica",
+  "settings.qrm": "Livello di rumore locale (QRM)",
+  "settings.qrm_low": "Basso — rurale / QTH tranquillo",
+  "settings.qrm_high": "Alto — urbano / molto QRM"
 }

@@ -15,6 +15,7 @@ export const DEFAULTS = {
   callsign: '', grid: '', licenceClass: 'novice_be',
   radioModel: 'icom-7300', txPowerW: 25, mode: 'ssb',
   antennaGain: 0, theme: 'dark', colorblind: false, language: 'en',
+  qrmLevel: 'low',   // 'low' | 'high' — lokaal stoorniveau, drijft de zender-aanbevelingen
 };
 
 // Licentie klassen incl. Belgische Klasse C
@@ -142,6 +143,7 @@ export function applyToState(d) {
   state.user.radioModel   = d.radioModel   ?? 'icom-7300';
   state.user.txPowerW       = Number(d.txPowerW ?? 25);
   state.user.mode         = d.mode         ?? 'ssb';
+  state.user.qrmLevel     = d.qrmLevel     ?? 'low';
   state.user.antennaGain  = Number(d.antennaGain ?? 0);
   state.user.theme        = d.theme        ?? 'dark';
   state.user.colorblind   = Boolean(d.colorblind);
@@ -238,6 +240,11 @@ function buildHTML(s, lc) {
         ${MODES.map(m =>
           `<option value="${m.toLowerCase()}" ${s.mode === m.toLowerCase() ? 'selected' : ''}>${m}</option>`
         ).join('')}
+      </select>
+      <label class="settings-label" for="s-qrm">${t('settings.qrm')}</label>
+      <select id="s-qrm" class="settings-select">
+        <option value="low" ${s.qrmLevel !== 'high' ? 'selected' : ''}>${t('settings.qrm_low')}</option>
+        <option value="high" ${s.qrmLevel === 'high' ? 'selected' : ''}>${t('settings.qrm_high')}</option>
       </select>
     </div>
 
@@ -445,6 +452,7 @@ function collectForm() {
     mode:         document.getElementById('s-mode')?.value    ?? 'ssb',
     txPowerW:       Math.min(rawPwr, lc.maxW),
     antennaGain:  Number(document.getElementById('s-gain')?.value ?? 0),
+    qrmLevel:     document.getElementById('s-qrm')?.value ?? 'low',
     theme,
     colorblind:   document.getElementById('s-colorblind')?.getAttribute('aria-checked') === 'true',
     language:     document.getElementById('s-lang')?.value ?? 'en',

@@ -1,166 +1,1211 @@
 {
-  "_comment": "Radio receiver profiles for HF Band Scout drilldown panel. Keys: model id → bands → conditionKey → settings. conditionKey = noise_low_kp_low | noise_low_kp_high | noise_high_kp_low | noise_high_kp_high",
-
-  "icom-7300": {
-    "name": "Icom IC-7300",
-    "bands": {
-      "160m": {
-        "noise_low_kp_low":  { "preamp": "OFF", "nb": "OFF", "nr": "1–3", "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "Low noise floor on 160m. Roofing filter helps adjacent QRM." },
-        "noise_low_kp_high": { "preamp": "OFF", "nb": "ON 3", "nr": "3–5", "filter": "250 Hz (CW) / 1.8 kHz (SSB)", "agc": "FAST", "note": "Elevated Kp causes QSB. Fast AGC protects eardrums. NB2 if ignition noise." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 2", "nr": "5–7", "filter": "250 Hz (CW) / 1.8 kHz (SSB)", "agc": "MID",  "note": "Pre-amp OFF on noisy 160m. NB reduces local power-line buzz." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 3", "nr": "7–9", "filter": "250 Hz (CW) / 1.8 kHz (SSB)", "agc": "FAST", "note": "Worst case. Consider 30-Hz IF filter on CW. QSO may not be worth it." }
-      },
-      "80m": {
-        "noise_low_kp_low":  { "preamp": "1",   "nb": "OFF", "nr": "1–3", "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "Preamp 1 adds 10 dB; skip if S-meter pegs." },
-        "noise_low_kp_high": { "preamp": "OFF", "nb": "ON 2", "nr": "3–5", "filter": "500 Hz (CW) / 1.8 kHz (SSB)", "agc": "FAST", "note": "Geomagnetic activity raises absorption. NB2 for lightning storms." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz (CW) / 1.8 kHz (SSB)", "agc": "MID",  "note": "Urban noise floor limits 80m gain. Keep preamp OFF." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 3", "nr": "7",   "filter": "250 Hz (CW) / 1.8 kHz (SSB)", "agc": "FAST", "note": "Band likely noisy and unreliable. Try FT8 before SSB." }
-      },
-      "40m": {
-        "noise_low_kp_low":  { "preamp": "1",   "nb": "OFF", "nr": "1–3", "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "40m usually reliable. Preamp 1 for DX." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "ON 2", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Moderate solar activity. Watch for rapid QSB." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "High QRM on 40m evenings; NB2 helps." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 3", "nr": "7",   "filter": "500 Hz / 1.8 kHz",             "agc": "FAST", "note": "Challenging. FT8 on 7074 kHz more robust than SSB." }
-      },
-      "30m": {
-        "noise_low_kp_low":  { "preamp": "1",   "nb": "OFF", "nr": "1",   "filter": "500 Hz",                        "agc": "SLOW", "note": "CW/digi only. Excellent DX band. Preamp 1 for weak signals." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz",                        "agc": "SLOW", "note": "FT8 on 10136 kHz holds up well under moderate Kp." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz",                        "agc": "MID",  "note": "No SSB competition here; NR helps with low-level buzz." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz",                        "agc": "MID",  "note": "Digi modes only. FT8 outperforms CW in these conditions." }
-      },
-      "20m": {
-        "noise_low_kp_low":  { "preamp": "1",   "nb": "OFF", "nr": "1",   "filter": "500 Hz (CW) / 2.8 kHz (SSB)", "agc": "SLOW", "note": "20m workhorse band. 2.8 kHz passband captures full SSB." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Solar activity manageable on 20m. Narrow filter if pileup." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 1", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Urban location: NB1 to reduce local hash." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz / 2.4 kHz",             "agc": "FAST", "note": "MUF may drop during K≥5 storm. Check 17m as fallback." }
-      },
-      "17m": {
-        "noise_low_kp_low":  { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "Preamp 2 (+20 dB) useful on 17m for DX signals." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "MUF sensitive to Kp on 17m. Be ready for quick QSB." },
-        "noise_high_kp_low": { "preamp": "1",   "nb": "ON 1", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Preamp 1 even in urban; 17m relatively quiet noise-wise." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz / 2.4 kHz",             "agc": "FAST", "note": "Band may be closed. Try 20m or 15m." }
-      },
-      "15m": {
-        "noise_low_kp_low":  { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "High solar flux opens 15m. Preamp 2 for grey-line DX." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Elevated Kp can close 15m quickly. Log SFI before calling CQ." },
-        "noise_high_kp_low": { "preamp": "1",   "nb": "ON 1", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "15m quieter than 40/80m; NB1 if any interference." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz / 2.4 kHz",             "agc": "FAST", "note": "Storm absorption heavy. 15m likely shut. Check 10m Sporadic-E." }
-      },
-      "12m": {
-        "noise_low_kp_low":  { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "12m excellent at solar max. Very low noise band." },
-        "noise_low_kp_high": { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "Minor Kp effect on 12m in good solar conditions." },
-        "noise_high_kp_low": { "preamp": "1",   "nb": "ON 1", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Urban location less of a problem at 24 MHz." },
-        "noise_high_kp_high":{ "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz / 2.4 kHz",             "agc": "MID",  "note": "Check 12m even in storms — sometimes still open via F2." }
-      },
-      "10m": {
-        "noise_low_kp_low":  { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz (CW) / 2.8 kHz (SSB)", "agc": "SLOW", "note": "Solar max: 10m can be wide open worldwide. Exciting band!" },
-        "noise_low_kp_high": { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.8 kHz",             "agc": "SLOW", "note": "Kp <4: still usable. Watch for sudden MUF drop." },
-        "noise_high_kp_low": { "preamp": "2",   "nb": "ON 1", "nr": "1",   "filter": "500 Hz / 2.8 kHz",             "agc": "SLOW", "note": "10m noise floor low even in cities. Preamp 2 safe here." },
-        "noise_high_kp_high":{ "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz / 2.8 kHz",             "agc": "SLOW", "note": "High Kp hits 10m hard. Try Es or wait for storm to pass." }
-      },
-      "6m": {
-        "noise_low_kp_low":  { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "Magic band. Monitor FT8 on 50.313 MHz constantly." },
-        "noise_low_kp_high": { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "Es openings independent of Kp. Don't give up!" },
-        "noise_high_kp_low": { "preamp": "2",   "nb": "ON 1", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "Low band noise on 6m. Preamp 2 recommended." },
-        "noise_high_kp_high":{ "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "Kp affects F2 on 6m but not Es. Keep watching." }
-      },
-      "2m": {
-        "noise_low_kp_low":  { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz (CW) / 2.4 kHz (SSB)", "agc": "SLOW", "note": "2m troposcatter/Es. FT8 on 144.174 MHz. Low noise." },
-        "noise_low_kp_high": { "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "Aurora on 2m possible during high Kp! Listen for CW buzz." },
-        "noise_high_kp_low": { "preamp": "2",   "nb": "ON 1", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "External LNA before feedline recommended for VHF." },
-        "noise_high_kp_high":{ "preamp": "2",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz",             "agc": "SLOW", "note": "High Kp = aurora mode. Expect rapid QSB on CW, try FT8." }
-      }
+ "_comment": "Radio receiver profiles for HF Band Scout drilldown panel. Keys: model id → bands → conditionKey → settings. conditionKey = noise_low_kp_low | noise_low_kp_high | noise_high_kp_low | noise_high_kp_high",
+ "icom-7300": {
+  "name": "Icom IC-7300",
+  "schema": 2,
+  "bands": {
+   "160m": {
+    "quiet": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~60% (ruis nét hoorbaar)",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "SLOW",
+      "nr": "3–5"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "3–5"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Band noise dominates on 160m — preamp never helps. Set RF gain so the noise floor is just audible."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "20 dB als ruisvloer > S7",
+      "rfgain": "~50%",
+      "nb": "NB ON (Level 5, Depth 8) alleen bij pulsruis",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "1.8 kHz (FIL3) + Twin-PBT",
+      "agc": "SLOW",
+      "nr": "6–9"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "MID",
+      "nr": "6–9"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Summer static/urban QRM: attenuate, narrow up, use Twin-PBT to dodge carriers. NB only for pulse-type noise — it distorts on static crashes."
+    },
+    "storm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~60%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "1.8 kHz (FIL3)",
+      "agc": "FAST",
+      "nr": "7–10"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "7–10"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Kp ≥ 4: 160m is usually dead except short skip. Fast AGC tames QSB flutter."
     }
-  },
-
-  "icom-7610": {
-    "name": "Icom IC-7610",
-    "bands": {
-      "20m": {
-        "noise_low_kp_low":  { "preamp": "1",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.8 kHz", "agc": "SLOW", "note": "Dual-watch useful: monitor 14.074 and 14.195 simultaneously." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "OFF", "nr": "3",   "filter": "500 Hz / 2.4 kHz", "agc": "MID",  "note": "RMDR >110 dB keeps adjacent signals clean during contests." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 1", "nr": "3",   "filter": "500 Hz / 2.4 kHz", "agc": "MID",  "note": "Roofing filter 600 Hz standard. Excellent for pileups." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz / 2.4 kHz", "agc": "FAST", "note": "Storm conditions. Use scope to quickly find open segment." }
-      },
-      "40m": {
-        "noise_low_kp_low":  { "preamp": "1",   "nb": "OFF", "nr": "1",   "filter": "500 Hz / 2.4 kHz", "agc": "SLOW", "note": "IP3 >+40 dBm handles contest QRM well." },
-        "noise_low_kp_high": { "preamp": "1",   "nb": "ON 1", "nr": "3",   "filter": "500 Hz / 2.4 kHz", "agc": "MID",  "note": "NB1 reduces power-line noise on evening 40m." },
-        "noise_high_kp_low": { "preamp": "OFF", "nb": "ON 2", "nr": "5",   "filter": "500 Hz / 2.4 kHz", "agc": "MID",  "note": "Use spectrum scope to id clear frequencies." },
-        "noise_high_kp_high":{ "preamp": "OFF", "nb": "ON 3", "nr": "7",   "filter": "250 Hz / 1.8 kHz", "agc": "FAST", "note": "Stormy 40m. FT8 more reliable." }
-      }
+   },
+   "80m": {
+    "quiet": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~70%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Band noise ≈ S5 is normal — preamp adds nothing but overload risk. Listen with RF gain, not AF gain."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "20 dB als ruisvloer > S7",
+      "rfgain": "~60%",
+      "nb": "NB ON (Level 5) alleen bij pulsruis",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "1.8 kHz (FIL3) + Twin-PBT",
+      "agc": "MID",
+      "nr": "5–7"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "MID",
+      "nr": "5–7"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Summer thunderstorm static (May–Sep) or urban noise: ATT in, narrow filter, NR mid. For FT8 leave NR/NB OFF — they hurt decodes."
+    },
+    "storm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~70%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "1.8 kHz (FIL3)",
+      "agc": "FAST",
+      "nr": "6–9"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "6–9"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Kp ≥ 4 kills polar 80m paths. Fast AGC for fluttery signals; expect deep QSB."
     }
-  },
-
-  "yaesu-ft-991a": {
-    "name": "Yaesu FT-991A",
-    "bands": {
-      "20m": {
-        "noise_low_kp_low":  { "preamp": "IPO OFF / AMP1", "nb": "OFF", "nr": "OFF", "filter": "2.4 kHz (SSB) / 500 Hz (CW)", "agc": "SLOW", "note": "AMP1 (+10 dB) for DX. Contour filter can enhance audio." },
-        "noise_low_kp_high": { "preamp": "AMP1", "nb": "ON",  "nr": "ON 3",  "filter": "2.4 kHz / 500 Hz",                       "agc": "MID",  "note": "NR level 3 is good balance on 991A." },
-        "noise_high_kp_low": { "preamp": "IPO",  "nb": "ON",  "nr": "ON 5",  "filter": "1.8 kHz / 500 Hz",                       "agc": "MID",  "note": "IPO (preamp off) in noisy urban QTH." },
-        "noise_high_kp_high":{ "preamp": "IPO",  "nb": "ON",  "nr": "ON 7",  "filter": "1.8 kHz / 250 Hz",                       "agc": "FAST", "note": "Storm + noise: narrow filters, NR max." }
-      },
-      "40m": {
-        "noise_low_kp_low":  { "preamp": "AMP1", "nb": "OFF", "nr": "OFF",   "filter": "2.4 kHz / 500 Hz", "agc": "SLOW", "note": "991A performs well on 40m. AMP1 helps for weaker DX." },
-        "noise_low_kp_high": { "preamp": "AMP1", "nb": "ON",  "nr": "ON 3",  "filter": "2.4 kHz / 500 Hz", "agc": "MID",  "note": "NB helpful on evening 40m with static crashes." },
-        "noise_high_kp_low": { "preamp": "IPO",  "nb": "ON",  "nr": "ON 5",  "filter": "1.8 kHz / 500 Hz", "agc": "MID",  "note": "Urban 40m: IPO + NR 5 + narrow SSB filter." },
-        "noise_high_kp_high":{ "preamp": "IPO",  "nb": "ON",  "nr": "ON 7",  "filter": "1.8 kHz / 250 Hz", "agc": "FAST", "note": "Difficult conditions. FT8 recommended." }
-      },
-      "10m": {
-        "noise_low_kp_low":  { "preamp": "AMP2", "nb": "OFF", "nr": "OFF",   "filter": "2.8 kHz / 500 Hz", "agc": "SLOW", "note": "AMP2 (+20 dB) on 10m at solar max." },
-        "noise_low_kp_high": { "preamp": "AMP2", "nb": "OFF", "nr": "ON 1",  "filter": "2.8 kHz / 500 Hz", "agc": "SLOW", "note": "Light NR helps without distorting 10m voice." },
-        "noise_high_kp_low": { "preamp": "AMP1", "nb": "ON",  "nr": "ON 3",  "filter": "2.8 kHz / 500 Hz", "agc": "MID",  "note": "10m noise generally low; modest settings sufficient." },
-        "noise_high_kp_high":{ "preamp": "AMP1", "nb": "OFF", "nr": "ON 3",  "filter": "2.8 kHz / 500 Hz", "agc": "MID",  "note": "Kp storm affects 10m via F2 absorption." }
-      }
+   },
+   "40m": {
+    "quiet": {
+     "common": {
+      "preamp": "OFF dag / P1 nacht",
+      "att": "OFF",
+      "rfgain": "~75%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Daytime: band noise dominates, preamp OFF. Quiet night DX: P1 can lift weak signals out of the floor."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "20 dB 's avonds bij sterke omroep",
+      "rfgain": "~60%",
+      "nb": "NB ON (Level 4) alleen bij pulsruis",
+      "ipplus": "ON"
+     },
+     "ssb": {
+      "filter": "1.8 kHz (FIL3) + Twin-PBT",
+      "agc": "MID",
+      "nr": "5–7"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "MID",
+      "nr": "5–7"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Evening 40m: strong 41/49 m broadcasters nearby — IP+ ON and ATT 20 dB prevent intermod ghosts. Twin-PBT steers around splatter."
+    },
+    "storm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~70%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "1.8 kHz (FIL3)",
+      "agc": "FAST",
+      "nr": "6–8"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "6–8"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Kp ≥ 4: 40m survives better than 80m but signals flutter. Fast AGC, narrow up, be patient."
     }
-  },
-
-  "kenwood-ts-890s": {
-    "name": "Kenwood TS-890S",
-    "bands": {
-      "20m": {
-        "noise_low_kp_low":  { "preamp": "LNA ON", "nb": "OFF", "nr": "1",  "filter": "500 Hz / 2.4 kHz", "agc": "SLOW", "note": "TS-890S roofing at 270 Hz — excellent for CW." },
-        "noise_low_kp_high": { "preamp": "LNA ON", "nb": "ON 2", "nr": "3", "filter": "500 Hz / 2.4 kHz", "agc": "MID",  "note": "NR + NB combo effective. AI-based NR2 for 890S." },
-        "noise_high_kp_low": { "preamp": "OFF",    "nb": "ON 2", "nr": "5", "filter": "500 Hz / 1.8 kHz", "agc": "MID",  "note": "LNA OFF in high noise; IP3 better without it." },
-        "noise_high_kp_high":{ "preamp": "OFF",    "nb": "ON 3", "nr": "7", "filter": "270 Hz / 1.8 kHz", "agc": "FAST", "note": "Use 270 Hz roofing for CW pileup or storm conditions." }
-      },
-      "40m": {
-        "noise_low_kp_low":  { "preamp": "LNA ON", "nb": "OFF", "nr": "1",  "filter": "500 Hz / 2.4 kHz", "agc": "SLOW", "note": "Excellent dynamic range — contest-grade on 40m." },
-        "noise_low_kp_high": { "preamp": "LNA ON", "nb": "ON 1", "nr": "3", "filter": "500 Hz / 2.4 kHz", "agc": "MID",  "note": "NB1 for lightning. NR AI-based (NR2) works well." },
-        "noise_high_kp_low": { "preamp": "OFF",    "nb": "ON 2", "nr": "5", "filter": "500 Hz / 1.8 kHz", "agc": "MID",  "note": "RF gain reduction may help more than NR in severe QRM." },
-        "noise_high_kp_high":{ "preamp": "OFF",    "nb": "ON 3", "nr": "7", "filter": "270 Hz / 1.8 kHz", "agc": "FAST", "note": "Worst case. Reduce RF gain, use 270 Hz roofing." }
-      }
+   },
+   "30m": {
+    "quiet": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~80%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2) — CW/digi-band",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Quiet digital/CW band. P1 is the sweet spot; band noise is low enough that it genuinely helps."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~70%",
+      "nb": "NB ON (Level 4) alleen bij pulsruis",
+      "ipplus": "ON"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "3–5"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "MID",
+      "nr": "3–5"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Urban noise on 30m: drop the preamp first — it amplifies noise as much as signal. IP+ ON costs nothing."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~80%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "4–6"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "4–6"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Kp ≥ 4: 30m holds up reasonably. Fast AGC for flutter on northern paths."
     }
-  },
-
-  "sdr-rtlsdr": {
-    "name": "RTL-SDR (receive only)",
-    "bands": {
-      "20m": {
-        "noise_low_kp_low":  { "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR",     "filter": "2.4 kHz DSP",  "agc": "Manual gain", "note": "Set gain 30–40 dB. RTL-SDR susceptible to overload on 20m." },
-        "noise_low_kp_high": { "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR +3",  "filter": "2.4 kHz DSP",  "agc": "Manual gain", "note": "Increase NR in SDR# plugin. AGC can cause desensitisation." },
-        "noise_high_kp_low": { "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR +5",  "filter": "1.8 kHz DSP",  "agc": "Manual gain", "note": "Lower gain to avoid ADC clipping in urban QRM." },
-        "noise_high_kp_high":{ "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR max", "filter": "1.0 kHz DSP",  "agc": "Manual gain", "note": "RTL-SDR marginal in storm. WSJT-X FT8 still works often." }
-      },
-      "40m": {
-        "noise_low_kp_low":  { "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR",     "filter": "2.4 kHz DSP",  "agc": "Manual gain", "note": "40m can overload RTL-SDR at night. Use attenuator if needed." },
-        "noise_low_kp_high": { "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR +3",  "filter": "2.4 kHz DSP",  "agc": "Manual gain", "note": "Reduce gain 5 dB during storm periods to reduce noise floor." },
-        "noise_high_kp_low": { "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR +5",  "filter": "1.8 kHz DSP",  "agc": "Manual gain", "note": "High local noise + RTL-SDR noise floor = challenging." },
-        "noise_high_kp_high":{ "preamp": "Bias-T OFF", "nb": "Software",  "nr": "SDR# NR max", "filter": "1.0 kHz DSP",  "agc": "Manual gain", "note": "Consider KiwiSDR remote instead for storm conditions." }
-      }
+   },
+   "20m": {
+    "quiet": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~85%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Workhorse band. P1 default; band noise is low so the preamp pays off for weak DX."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "OFF",
+      "att": "OFF",
+      "rfgain": "~75%",
+      "nb": "OFF",
+      "ipplus": "ON"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2) + Twin-PBT",
+      "agc": "MID",
+      "nr": "3–5"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "3–5"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Contest weekends / crowded band: preamp OFF + IP+ ON keeps the receiver linear next to S9+40 neighbours. Twin-PBT against splatter."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~85%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "4–7"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "4–7"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Kp ≥ 4: polar paths flutter ('auroral T'). Fast AGC follows it best; NR mid helps SSB readability."
     }
-  },
-
-  "generic": {
-    "name": "Generic / Other",
-    "bands": {
-      "160m": { "noise_low_kp_low":  { "preamp": "OFF",  "nb": "LOW",  "nr": "LOW",  "filter": "Standard", "agc": "SLOW", "note": "160m: preamp off, minimal NR, slow AGC." } },
-      "80m":  { "noise_low_kp_low":  { "preamp": "LOW",  "nb": "OFF",  "nr": "LOW",  "filter": "Standard", "agc": "SLOW", "note": "80m: light preamp if needed." } },
-      "40m":  { "noise_low_kp_low":  { "preamp": "MED",  "nb": "OFF",  "nr": "LOW",  "filter": "Standard", "agc": "SLOW", "note": "40m: modest preamp, NR only if needed." } },
-      "20m":  { "noise_low_kp_low":  { "preamp": "MED",  "nb": "OFF",  "nr": "OFF",  "filter": "Standard", "agc": "SLOW", "note": "20m: generally clean, light settings." } },
-      "15m":  { "noise_low_kp_low":  { "preamp": "HIGH", "nb": "OFF",  "nr": "OFF",  "filter": "Standard", "agc": "SLOW", "note": "15m: higher preamp for DX." } },
-      "10m":  { "noise_low_kp_low":  { "preamp": "HIGH", "nb": "OFF",  "nr": "OFF",  "filter": "Wide",     "agc": "SLOW", "note": "10m: max preamp, wide filter at solar max." } },
-      "6m":   { "noise_low_kp_low":  { "preamp": "HIGH", "nb": "OFF",  "nr": "OFF",  "filter": "Standard", "agc": "SLOW", "note": "6m: always max preamp for Es signals." } }
+   },
+   "17m": {
+    "quiet": {
+     "common": {
+      "preamp": "P1 (P2 bij heel stille band)",
+      "att": "OFF",
+      "rfgain": "~90%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Low-noise band — preamp earns its keep. No contests on WARC: relaxed listening."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~80%",
+      "nb": "OFF",
+      "ipplus": "ON"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Local QRM on 17m is usually broadband hash — NR low, preamp one step down."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~90%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "3–6"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "3–6"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Higher bands recover first after a storm — watch for sudden openings."
     }
+   },
+   "15m": {
+    "quiet": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~90%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "0–2"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Atmospheric noise is low up here — P2 (high gain) is what it was made for."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "P1",
+      "att": "OFF",
+      "rfgain": "~80%",
+      "nb": "OFF",
+      "ipplus": "ON"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "2–4"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "2–4"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Crowded 15m (contest): back off to P1, IP+ ON."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~90%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "3–5"
+     },
+     "cw": {
+      "filter": "250 Hz (FIL3)",
+      "agc": "FAST",
+      "nr": "3–5"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Post-storm 15m often opens with fluttery polar signals — fast AGC."
+    }
+   },
+   "12m": {
+    "quiet": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~95%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "0–1"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "0–1"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Very quiet band — maximum sensitivity (P2), everything else off."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~85%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "1–3"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "1–3"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "QRM rarely reaches 12m; if it does it is usually local electronics — find the source rather than filtering."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~95%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "2–4"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "FAST",
+      "nr": "2–4"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Watch for short post-storm enhancements."
+    }
+   },
+   "10m": {
+    "quiet": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~95%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "0–1"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "0–1"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "P2 is designed for ≥ 21 MHz — use it. Es openings are sudden: park on 28.074 FT8 to spot them first."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~90%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "MID",
+      "nr": "1–3"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "MID",
+      "nr": "1–3"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "10m QRM is almost always nearby electronics (solar inverters, chargers). NB only if it is pulse-like."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~95%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "2–4"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "FAST",
+      "nr": "2–4"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Es is largely Kp-immune — 10m can be the only band alive during a storm. AGC fast for short bursts."
+    }
+   },
+   "6m": {
+    "quiet": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~95%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "0–1"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "FAST",
+      "nr": "0–1"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Magic band: dead-quiet until it explodes. P2, AGC fast, monitor 50.313 FT8."
+    },
+    "qrm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~90%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "1–2"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "FAST",
+      "nr": "1–2"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "QRM on 6m is local by definition — hunt the source."
+    },
+    "storm": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "~95%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "1–3"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "FAST",
+      "nr": "1–3"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "Aurora on 6m gives raspy 'tone-less' CW — narrow filter, fast AGC, beam north."
+    }
+   },
+   "2m": {
+    "quiet": {
+     "common": {
+      "preamp": "P2",
+      "att": "OFF",
+      "rfgain": "100%",
+      "nb": "OFF",
+      "ipplus": "OFF"
+     },
+     "ssb": {
+      "filter": "2.4 kHz (FIL2)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "cw": {
+      "filter": "500 Hz (FIL2)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "digi": {
+      "filter": "3.0 kHz (FIL1)",
+      "agc": "FAST",
+      "nr": "OFF"
+     },
+     "note": "FM/repeaters: settings barely matter. SSB/digi weak-signal work: P2, horizontal antenna, fast AGC."
+    }
+   }
   }
+ },
+ "icom-7610": {
+  "name": "Icom IC-7610",
+  "bands": {
+   "20m": {
+    "noise_low_kp_low": {
+     "preamp": "1",
+     "nb": "OFF",
+     "nr": "1",
+     "filter": "500 Hz / 2.8 kHz",
+     "agc": "SLOW",
+     "note": "Dual-watch useful: monitor 14.074 and 14.195 simultaneously."
+    },
+    "noise_low_kp_high": {
+     "preamp": "1",
+     "nb": "OFF",
+     "nr": "3",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "MID",
+     "note": "RMDR >110 dB keeps adjacent signals clean during contests."
+    },
+    "noise_high_kp_low": {
+     "preamp": "OFF",
+     "nb": "ON 1",
+     "nr": "3",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "MID",
+     "note": "Roofing filter 600 Hz standard. Excellent for pileups."
+    },
+    "noise_high_kp_high": {
+     "preamp": "OFF",
+     "nb": "ON 2",
+     "nr": "5",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "FAST",
+     "note": "Storm conditions. Use scope to quickly find open segment."
+    }
+   },
+   "40m": {
+    "noise_low_kp_low": {
+     "preamp": "1",
+     "nb": "OFF",
+     "nr": "1",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "SLOW",
+     "note": "IP3 >+40 dBm handles contest QRM well."
+    },
+    "noise_low_kp_high": {
+     "preamp": "1",
+     "nb": "ON 1",
+     "nr": "3",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "MID",
+     "note": "NB1 reduces power-line noise on evening 40m."
+    },
+    "noise_high_kp_low": {
+     "preamp": "OFF",
+     "nb": "ON 2",
+     "nr": "5",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "MID",
+     "note": "Use spectrum scope to id clear frequencies."
+    },
+    "noise_high_kp_high": {
+     "preamp": "OFF",
+     "nb": "ON 3",
+     "nr": "7",
+     "filter": "250 Hz / 1.8 kHz",
+     "agc": "FAST",
+     "note": "Stormy 40m. FT8 more reliable."
+    }
+   }
+  }
+ },
+ "yaesu-ft-991a": {
+  "name": "Yaesu FT-991A",
+  "bands": {
+   "20m": {
+    "noise_low_kp_low": {
+     "preamp": "IPO OFF / AMP1",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "2.4 kHz (SSB) / 500 Hz (CW)",
+     "agc": "SLOW",
+     "note": "AMP1 (+10 dB) for DX. Contour filter can enhance audio."
+    },
+    "noise_low_kp_high": {
+     "preamp": "AMP1",
+     "nb": "ON",
+     "nr": "ON 3",
+     "filter": "2.4 kHz / 500 Hz",
+     "agc": "MID",
+     "note": "NR level 3 is good balance on 991A."
+    },
+    "noise_high_kp_low": {
+     "preamp": "IPO",
+     "nb": "ON",
+     "nr": "ON 5",
+     "filter": "1.8 kHz / 500 Hz",
+     "agc": "MID",
+     "note": "IPO (preamp off) in noisy urban QTH."
+    },
+    "noise_high_kp_high": {
+     "preamp": "IPO",
+     "nb": "ON",
+     "nr": "ON 7",
+     "filter": "1.8 kHz / 250 Hz",
+     "agc": "FAST",
+     "note": "Storm + noise: narrow filters, NR max."
+    }
+   },
+   "40m": {
+    "noise_low_kp_low": {
+     "preamp": "AMP1",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "2.4 kHz / 500 Hz",
+     "agc": "SLOW",
+     "note": "991A performs well on 40m. AMP1 helps for weaker DX."
+    },
+    "noise_low_kp_high": {
+     "preamp": "AMP1",
+     "nb": "ON",
+     "nr": "ON 3",
+     "filter": "2.4 kHz / 500 Hz",
+     "agc": "MID",
+     "note": "NB helpful on evening 40m with static crashes."
+    },
+    "noise_high_kp_low": {
+     "preamp": "IPO",
+     "nb": "ON",
+     "nr": "ON 5",
+     "filter": "1.8 kHz / 500 Hz",
+     "agc": "MID",
+     "note": "Urban 40m: IPO + NR 5 + narrow SSB filter."
+    },
+    "noise_high_kp_high": {
+     "preamp": "IPO",
+     "nb": "ON",
+     "nr": "ON 7",
+     "filter": "1.8 kHz / 250 Hz",
+     "agc": "FAST",
+     "note": "Difficult conditions. FT8 recommended."
+    }
+   },
+   "10m": {
+    "noise_low_kp_low": {
+     "preamp": "AMP2",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "2.8 kHz / 500 Hz",
+     "agc": "SLOW",
+     "note": "AMP2 (+20 dB) on 10m at solar max."
+    },
+    "noise_low_kp_high": {
+     "preamp": "AMP2",
+     "nb": "OFF",
+     "nr": "ON 1",
+     "filter": "2.8 kHz / 500 Hz",
+     "agc": "SLOW",
+     "note": "Light NR helps without distorting 10m voice."
+    },
+    "noise_high_kp_low": {
+     "preamp": "AMP1",
+     "nb": "ON",
+     "nr": "ON 3",
+     "filter": "2.8 kHz / 500 Hz",
+     "agc": "MID",
+     "note": "10m noise generally low; modest settings sufficient."
+    },
+    "noise_high_kp_high": {
+     "preamp": "AMP1",
+     "nb": "OFF",
+     "nr": "ON 3",
+     "filter": "2.8 kHz / 500 Hz",
+     "agc": "MID",
+     "note": "Kp storm affects 10m via F2 absorption."
+    }
+   }
+  }
+ },
+ "kenwood-ts-890s": {
+  "name": "Kenwood TS-890S",
+  "bands": {
+   "20m": {
+    "noise_low_kp_low": {
+     "preamp": "LNA ON",
+     "nb": "OFF",
+     "nr": "1",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "SLOW",
+     "note": "TS-890S roofing at 270 Hz — excellent for CW."
+    },
+    "noise_low_kp_high": {
+     "preamp": "LNA ON",
+     "nb": "ON 2",
+     "nr": "3",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "MID",
+     "note": "NR + NB combo effective. AI-based NR2 for 890S."
+    },
+    "noise_high_kp_low": {
+     "preamp": "OFF",
+     "nb": "ON 2",
+     "nr": "5",
+     "filter": "500 Hz / 1.8 kHz",
+     "agc": "MID",
+     "note": "LNA OFF in high noise; IP3 better without it."
+    },
+    "noise_high_kp_high": {
+     "preamp": "OFF",
+     "nb": "ON 3",
+     "nr": "7",
+     "filter": "270 Hz / 1.8 kHz",
+     "agc": "FAST",
+     "note": "Use 270 Hz roofing for CW pileup or storm conditions."
+    }
+   },
+   "40m": {
+    "noise_low_kp_low": {
+     "preamp": "LNA ON",
+     "nb": "OFF",
+     "nr": "1",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "SLOW",
+     "note": "Excellent dynamic range — contest-grade on 40m."
+    },
+    "noise_low_kp_high": {
+     "preamp": "LNA ON",
+     "nb": "ON 1",
+     "nr": "3",
+     "filter": "500 Hz / 2.4 kHz",
+     "agc": "MID",
+     "note": "NB1 for lightning. NR AI-based (NR2) works well."
+    },
+    "noise_high_kp_low": {
+     "preamp": "OFF",
+     "nb": "ON 2",
+     "nr": "5",
+     "filter": "500 Hz / 1.8 kHz",
+     "agc": "MID",
+     "note": "RF gain reduction may help more than NR in severe QRM."
+    },
+    "noise_high_kp_high": {
+     "preamp": "OFF",
+     "nb": "ON 3",
+     "nr": "7",
+     "filter": "270 Hz / 1.8 kHz",
+     "agc": "FAST",
+     "note": "Worst case. Reduce RF gain, use 270 Hz roofing."
+    }
+   }
+  }
+ },
+ "sdr-rtlsdr": {
+  "name": "RTL-SDR (receive only)",
+  "bands": {
+   "20m": {
+    "noise_low_kp_low": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR",
+     "filter": "2.4 kHz DSP",
+     "agc": "Manual gain",
+     "note": "Set gain 30–40 dB. RTL-SDR susceptible to overload on 20m."
+    },
+    "noise_low_kp_high": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR +3",
+     "filter": "2.4 kHz DSP",
+     "agc": "Manual gain",
+     "note": "Increase NR in SDR# plugin. AGC can cause desensitisation."
+    },
+    "noise_high_kp_low": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR +5",
+     "filter": "1.8 kHz DSP",
+     "agc": "Manual gain",
+     "note": "Lower gain to avoid ADC clipping in urban QRM."
+    },
+    "noise_high_kp_high": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR max",
+     "filter": "1.0 kHz DSP",
+     "agc": "Manual gain",
+     "note": "RTL-SDR marginal in storm. WSJT-X FT8 still works often."
+    }
+   },
+   "40m": {
+    "noise_low_kp_low": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR",
+     "filter": "2.4 kHz DSP",
+     "agc": "Manual gain",
+     "note": "40m can overload RTL-SDR at night. Use attenuator if needed."
+    },
+    "noise_low_kp_high": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR +3",
+     "filter": "2.4 kHz DSP",
+     "agc": "Manual gain",
+     "note": "Reduce gain 5 dB during storm periods to reduce noise floor."
+    },
+    "noise_high_kp_low": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR +5",
+     "filter": "1.8 kHz DSP",
+     "agc": "Manual gain",
+     "note": "High local noise + RTL-SDR noise floor = challenging."
+    },
+    "noise_high_kp_high": {
+     "preamp": "Bias-T OFF",
+     "nb": "Software",
+     "nr": "SDR# NR max",
+     "filter": "1.0 kHz DSP",
+     "agc": "Manual gain",
+     "note": "Consider KiwiSDR remote instead for storm conditions."
+    }
+   }
+  }
+ },
+ "generic": {
+  "name": "Generic / Other",
+  "bands": {
+   "160m": {
+    "noise_low_kp_low": {
+     "preamp": "OFF",
+     "nb": "LOW",
+     "nr": "LOW",
+     "filter": "Standard",
+     "agc": "SLOW",
+     "note": "160m: preamp off, minimal NR, slow AGC."
+    }
+   },
+   "80m": {
+    "noise_low_kp_low": {
+     "preamp": "LOW",
+     "nb": "OFF",
+     "nr": "LOW",
+     "filter": "Standard",
+     "agc": "SLOW",
+     "note": "80m: light preamp if needed."
+    }
+   },
+   "40m": {
+    "noise_low_kp_low": {
+     "preamp": "MED",
+     "nb": "OFF",
+     "nr": "LOW",
+     "filter": "Standard",
+     "agc": "SLOW",
+     "note": "40m: modest preamp, NR only if needed."
+    }
+   },
+   "20m": {
+    "noise_low_kp_low": {
+     "preamp": "MED",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "Standard",
+     "agc": "SLOW",
+     "note": "20m: generally clean, light settings."
+    }
+   },
+   "15m": {
+    "noise_low_kp_low": {
+     "preamp": "HIGH",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "Standard",
+     "agc": "SLOW",
+     "note": "15m: higher preamp for DX."
+    }
+   },
+   "10m": {
+    "noise_low_kp_low": {
+     "preamp": "HIGH",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "Wide",
+     "agc": "SLOW",
+     "note": "10m: max preamp, wide filter at solar max."
+    }
+   },
+   "6m": {
+    "noise_low_kp_low": {
+     "preamp": "HIGH",
+     "nb": "OFF",
+     "nr": "OFF",
+     "filter": "Standard",
+     "agc": "SLOW",
+     "note": "6m: always max preamp for Es signals."
+    }
+   }
+  }
+ },
+ "icom-7300-mk2": {
+  "alias": "icom-7300",
+  "name": "Icom IC-7300 MkII"
+ }
 }
