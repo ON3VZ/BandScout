@@ -10,8 +10,9 @@
 import { state, scoreClass, scoreToHex, getActiveBands, BAND_FREQ_MHZ } from './state.js';
 import { t } from './i18n.js';
 import { haversineKm, bearingDeg, fmtKm, fmtAzimuth, antipode, showToast } from './utils.js';
-import { buildReasonString } from './propagation.js';
+import { buildReasonString, calcReliability } from './propagation.js';
 import { stepToDate } from './cache.js';
+import { getKpAtStep } from './noaa.js';
 import { getBandPlanSnippet } from './bandplan.js';
 
 // ─────────────────────────────────────────────
@@ -136,15 +137,29 @@ function renderScoresTable(props, rxLat, rxLon) {
   const sfi     = state.noaa.sfi ?? 100;
   const kp      = state.noaa.kp  ?? 2;
 
-  // Collect scores
+  // 100W-REF-FIX: live berekenen i.p.v. uit de cache. De cache bewaart per
+  // band alleen de power-gecorrigeerde score — geen score100W en geen
+  // details, waardoor de REF-kolom altijd 0% was en HOPS altijd '—'.
+  // Eén entiteit × ~6 banden is verwaarloosbaar werk, en als bonus rekent
+  // de lang-pad-toggle nu écht met de antipode (voorheen toonde hij stil
+  // de kort-pad-cachescores).
+  const time   = stepToDate(step);
+  const kpStep = getKpAtStep(step);
   const rows = bands.map(band => {
-    const cached = state.scoreCache?.[id]?.steps?.[step];
-    return {
-      band,
-      score:    cached?.[band]    ?? 0,
-      score100W: 0,  // score100W niet in cache (zelfde score gebruikt)
-      details:  cached?.details  ?? {},
-    };
+    try {
+      const r = calcReliability({
+        band,
+        txLat: state.user.lat ?? 51.18,
+        txLon: state.user.lon ?? 4.35,
+        rxLat, rxLon, time,
+        sfi, kp: kpStep,
+        txPowerW: state.user.txPowerW ?? 25,
+        mode:     state.user.mode     ?? 'ssb',
+      });
+      return { band, score: r.score ?? 0, score100W: r.score100W ?? 0, details: r.details ?? {} };
+    } catch {
+      return { band, score: 0, score100W: 0, details: {} };
+    }
   });
 
   // Best band
